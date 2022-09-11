@@ -1,2 +1,1 @@
-# Laborator-PSSC
-Material suport pentru Laboratorul PSSC
+# exemple-laborator
