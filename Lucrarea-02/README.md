@@ -1,4 +1,4 @@
-# Lucrarea 1: Crearea unui sistem de tipuri pentru un model Domain Driven Design (DDD) 
+# Lucrarea 2: Crearea unui sistem de tipuri pentru un model Domain Driven Design (DDD) 
 
 **Context**: coșul de cumpărături pentru un magazin virtual. 
 
