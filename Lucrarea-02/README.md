@@ -1,4 +1,4 @@
-# Lucrarea 1: Crearea unui sistem de tipuri pentru un model Domain Driven Design (DDD) 
+# Lucrarea 2: Crearea unui sistem de tipuri pentru un model Domain Driven Design (DDD) 
 
 **Context**: coșul de cumpărături pentru un magazin virtual. 
 
@@ -12,11 +12,11 @@ Analizați și rulați soluția din directorul exemple. Identificați elementele
 
 Implementarea unui sistem de tipuri pentru a reprezenta un coș de cumpărături și realizarea unei aplicații consolă care să folosească acele tipuri. 
 Sistemul de tipuri trebuie să folosească: 
-* un choice type pentru a reprezenta un cărucior în următoarele stările: gol, nevalidat, validate, plătit.  
+* un choice type pentru a reprezenta un coș în următoarele stările: gol, nevalidat, validate, plătit.  
 * value type pentru a reprezenta cantitatea produselor comandate, codul produsului, adresa 
-* entity type pentru a reprezenta căruciorul de cumpărături, clientul 
+* entity type pentru a reprezenta coșul de cumpărături, clientul 
 
-Aplicația consolă trebuie să permită crearea unui cărucior gol, adăugarea de produse în cărucior, trecerea unui cărucior dintr-o stare în altă fără a aplica validări. 
+Aplicația consolă trebuie să permită crearea unui coș gol, adăugarea de produse în coș, trecerea unui coș dintr-o stare în altă fără a aplica validări. 
 
 **Referințe**
 
