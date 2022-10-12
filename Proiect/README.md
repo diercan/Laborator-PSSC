@@ -1,4 +1,4 @@
-#Proiect PSSC
+# Proiect PSSC
 
 Implementarea unui sistem software pentru preluarea de comenzi, facturare și expediere. Fiecare echipa va alege cate un workflow din cele trei contexte pe care le va defini si implementa. Exemple de workflow-uri: preluare comanda, anulare comanda, modificare comanda, returnare comanda.
 
