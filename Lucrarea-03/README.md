@@ -17,7 +17,7 @@ Workflow-ul trebuie să conțină următoarele operații:
 * verificarea stocului
 * verificarea adresei de livrare
 * calcularea prețului
-Workflow-ul se va finaliza cu generarea unui eveniment care va indica fie faptul că formularul de comanda este valid și comanda a fost preluată cu succes fie faptul că formularul de comanda este invalid și comanda nu a fost respinsă.
+* Workflow-ul se va finaliza cu generarea unui eveniment care va indica fie faptul că formularul de comanda este valid și comanda a fost preluată cu succes fie faptul că formularul de comanda este invalid și comanda nu a fost respinsă.
 
 **Referințe**
 
