@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Exemple.Domain.Exceptions;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Exemple.Domain.Models
 {
-    public record StudentRegistrationNumber
+	public record StudentRegistrationNumber
     {
         private static readonly Regex ValidPattern = new("^LM[0-9]{5}$");
 

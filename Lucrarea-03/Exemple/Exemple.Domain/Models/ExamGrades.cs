@@ -1,13 +1,10 @@
 ﻿using CSharp.Choices;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Exemple.Domain.Models
 {
-    [AsChoice]
+	[AsChoice]
     public static partial class ExamGrades
     {
         public interface IExamGrades { }

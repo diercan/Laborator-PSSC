@@ -3,10 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using static Exemple.Domain.Models.ExamGrades;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Operations
 {
     public static class ExamGradesOperation
     {
@@ -15,7 +14,7 @@ namespace Exemple.Domain
             List<ValidatedStudentGrade> validatedGrades = new();
             bool isValidList = true;
             string invalidReson = string.Empty;
-            foreach(var unvalidatedGrade in examGrades.GradeList)
+            foreach (var unvalidatedGrade in examGrades.GradeList)
             {
                 if (!Grade.TryParseGrade(unvalidatedGrade.ExamGrade, out Grade examGrade))
                 {
