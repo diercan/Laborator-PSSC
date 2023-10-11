@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static Exemple.Domain.Models.ExamGrades;
-using static Exemple.Domain.ExamGradesOperation;
-using Exemple.Domain;
+using Exemple.Domain.Workflows;
+using Exemple.Domain.Commands;
 
 namespace Exemple
 {
     class Program
     {
-        private static readonly Random random = new Random();
-
         static void Main(string[] args)
         {
             var listOfGrades = ReadListOfGrades().ToArray();
@@ -31,8 +29,6 @@ namespace Exemple
                         return @event;
                     }
                 );
-
-            Console.WriteLine("Hello World!");
         }
 
         private static List<UnvalidatedStudentGrade> ReadListOfGrades()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Exemple.Domain.Models
+namespace Exemple.Domain.Exceptions
 {
     [Serializable]
     internal class InvalidGradeException : Exception
@@ -10,11 +10,11 @@ namespace Exemple.Domain.Models
         {
         }
 
-        public InvalidGradeException(string? message) : base(message)
+        public InvalidGradeException(string message) : base(message)
         {
         }
 
-        public InvalidGradeException(string? message, Exception? innerException) : base(message, innerException)
+        public InvalidGradeException(string message, Exception innerException) : base(message, innerException)
         {
         }
 

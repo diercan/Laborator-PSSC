@@ -1,10 +1,11 @@
 ﻿using Exemple.Domain.Models;
 using static Exemple.Domain.Models.ExamGradesPublishedEvent;
-using static Exemple.Domain.ExamGradesOperation;
+using static Exemple.Domain.Operations.ExamGradesOperation;
 using System;
 using static Exemple.Domain.Models.ExamGrades;
+using Exemple.Domain.Commands;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Workflows
 {
     public class PublishGradeWorkflow
     {

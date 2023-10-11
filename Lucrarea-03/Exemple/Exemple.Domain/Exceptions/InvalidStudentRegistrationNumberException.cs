@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Exemple.Domain.Models
+namespace Exemple.Domain.Exceptions
 {
     [Serializable]
     internal class InvalidStudentRegistrationNumberException : Exception
@@ -10,11 +10,11 @@ namespace Exemple.Domain.Models
         {
         }
 
-        public InvalidStudentRegistrationNumberException(string? message) : base(message)
+        public InvalidStudentRegistrationNumberException(string message) : base(message)
         {
         }
 
-        public InvalidStudentRegistrationNumberException(string? message, Exception? innerException) : base(message, innerException)
+        public InvalidStudentRegistrationNumberException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
