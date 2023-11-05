@@ -80,15 +80,15 @@ namespace Exemple.Domain
 
         private ExamGradesPublishFaildEvent GenerateFailedEvent(IExamGrades examGrades) =>
             examGrades.Match<ExamGradesPublishFaildEvent>(
-                whenUnvalidatedExamGrades: unvalidatedExamGrades => new($"Invalid state {nameof(UnvalidatedExamGrades)}"),
-                whenInvalidExamGrades: invalidExamGrades => new(invalidExamGrades.Reason),
-                whenValidatedExamGrades: validatedExamGrades => new($"Invalid state {nameof(ValidatedExamGrades)}"),
+                whenUnvalidatedExamGrades: unvalidatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(UnvalidatedExamGrades)}"),
+                whenInvalidExamGrades: invalidExamGrades => new ExamGradesPublishFaildEvent(invalidExamGrades.Reason),
+                whenValidatedExamGrades: validatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(ValidatedExamGrades)}"),
                 whenFailedExamGrades: failedExamGrades =>
                 {
                     logger.LogError(failedExamGrades.Exception, failedExamGrades.Exception.Message);
-                    return new(failedExamGrades.Exception.Message);
+                    return new ExamGradesPublishFaildEvent(failedExamGrades.Exception.Message);
                 },
-                whenCalculatedExamGrades: calculatedExamGrades => new($"Invalid state {nameof(CalculatedExamGrades)}"),
-                whenPublishedExamGrades: publishedExamGrades => new($"Invalid state {nameof(PublishedExamGrades)}"));
+                whenCalculatedExamGrades: calculatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(CalculatedExamGrades)}"),
+                whenPublishedExamGrades: publishedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(PublishedExamGrades)}"));
     }
 }
