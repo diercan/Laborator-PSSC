@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Exemple.Domain.Exceptions;
+using System;
 
 namespace Exemple.Domain
 {
@@ -10,7 +7,7 @@ namespace Exemple.Domain
     {
         public decimal Value { get; }
 
-        public Grade(decimal value)
+        private Grade(decimal value)
         {
             if (value > 0 && value <= 10)
             {

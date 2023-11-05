@@ -20,8 +20,6 @@ namespace Exemple
                 whenInvalidatedExamGrades: invalidResult => invalidResult,
                 whenValidatedExamGrades: validatedResult => PublishExamGrades(validatedResult)
             );
-
-            Console.WriteLine("Hello World!");
         }
 
         private static List<UnvalidatedStudentGrade> ReadListOfGrades()

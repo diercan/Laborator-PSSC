@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Exceptions
 {
     [Serializable]
     internal class InvalidStudentRegistrationNumberException : Exception
