@@ -1,3 +1,9 @@
+CREATE DATABASE Student;
+GO
+
+USE Student;
+GO
+
 CREATE TABLE [dbo].[Student](
 	[StudentId] [int] IDENTITY(1,1) NOT NULL,
 	[RegistrationNumber] [varchar](7) NOT NULL,
@@ -13,9 +19,9 @@ GO
 CREATE TABLE [dbo].[Grade](
 	[GradeId] [int] IDENTITY(1,1) NOT NULL,
 	[StudentId] [int] NOT NULL,
-	[Exam] [decimal](18, 0) NULL,
-	[Activity] [decimal](18, 0) NULL,
-	[Final] [decimal](18, 0) NULL,
+	[Exam] [decimal](18, 2) NULL,
+	[Activity] [decimal](18, 2) NULL,
+	[Final] [decimal](18, 2) NULL,
  CONSTRAINT [PK_Grades] PRIMARY KEY CLUSTERED 
 (
 	[GradeId] ASC
