@@ -1,6 +1,7 @@
 ﻿using LanguageExt;
 using static LanguageExt.Prelude;
 using System.Text.RegularExpressions;
+using Exemple.Domain.Exceptions;
 
 namespace Exemple.Domain.Models
 {

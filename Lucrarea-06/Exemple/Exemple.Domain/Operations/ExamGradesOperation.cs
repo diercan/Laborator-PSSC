@@ -8,7 +8,7 @@ using System.Text;
 using static Exemple.Domain.Models.ExamGrades;
 using System.Threading.Tasks;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Operations
 {
     public static class ExamGradesOperation
     {
@@ -24,7 +24,7 @@ namespace Exemple.Domain
         private static Func<UnvalidatedStudentGrade, EitherAsync<string, ValidatedStudentGrade>> ValidateStudentGrade(Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>> checkStudentExists) =>
             unvalidatedStudentGrade => ValidateStudentGrade(checkStudentExists, unvalidatedStudentGrade);
 
-        private static EitherAsync<string, ValidatedStudentGrade> ValidateStudentGrade(Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>> checkStudentExists, UnvalidatedStudentGrade unvalidatedGrade)=>
+        private static EitherAsync<string, ValidatedStudentGrade> ValidateStudentGrade(Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>> checkStudentExists, UnvalidatedStudentGrade unvalidatedGrade) =>
             from examGrade in Grade.TryParseGrade(unvalidatedGrade.ExamGrade)
                                    .ToEitherAsync($"Invalid exam grade ({unvalidatedGrade.StudentRegistrationNumber}, {unvalidatedGrade.ExamGrade})")
             from activityGrade in Grade.TryParseGrade(unvalidatedGrade.ActivityGrade)
@@ -52,7 +52,7 @@ namespace Exemple.Domain
         public static IExamGrades CalculateFinalGrades(IExamGrades examGrades) => examGrades.Match(
             whenUnvalidatedExamGrades: unvalidaTedExam => unvalidaTedExam,
             whenInvalidExamGrades: invalidExam => invalidExam,
-            whenFailedExamGrades: failedExam => failedExam, 
+            whenFailedExamGrades: failedExam => failedExam,
             whenCalculatedExamGrades: calculatedExam => calculatedExam,
             whenPublishedExamGrades: publishedExam => publishedExam,
             whenValidatedExamGrades: CalculateFinalGrade
@@ -64,7 +64,7 @@ namespace Exemple.Domain
                                                     .ToList()
                                                     .AsReadOnly());
 
-        private static CalculatedSudentGrade CalculateStudentFinalGrade(ValidatedStudentGrade validGrade) => 
+        private static CalculatedSudentGrade CalculateStudentFinalGrade(ValidatedStudentGrade validGrade) =>
             new CalculatedSudentGrade(validGrade.StudentRegistrationNumber,
                                       validGrade.ExamGrade,
                                       validGrade.ActivityGrade,
@@ -96,9 +96,9 @@ namespace Exemple.Domain
             whenPublishedExamGrades: publishedExam => publishedExam,
             whenCalculatedExamGrades: GenerateExport);
 
-        private static IExamGrades GenerateExport(CalculatedExamGrades calculatedExam) => 
-            new PublishedExamGrades(calculatedExam.GradeList, 
-                                    calculatedExam.GradeList.Aggregate(new StringBuilder(), CreateCsvLine).ToString(), 
+        private static IExamGrades GenerateExport(CalculatedExamGrades calculatedExam) =>
+            new PublishedExamGrades(calculatedExam.GradeList,
+                                    calculatedExam.GradeList.Aggregate(new StringBuilder(), CreateCsvLine).ToString(),
                                     DateTime.Now);
 
         private static StringBuilder CreateCsvLine(StringBuilder export, CalculatedSudentGrade grade) =>
