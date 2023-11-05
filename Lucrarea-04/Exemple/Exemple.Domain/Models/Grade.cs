@@ -1,4 +1,5 @@
-﻿using LanguageExt;
+﻿using Exemple.Domain.Exceptions;
+using LanguageExt;
 using System;
 using static LanguageExt.Prelude;
 
@@ -8,7 +9,7 @@ namespace Exemple.Domain.Models
     {
         public decimal Value { get; }
 
-        public Grade(decimal value)
+        private Grade(decimal value)
         {
             if (IsValid(value))
             {
@@ -38,7 +39,7 @@ namespace Exemple.Domain.Models
         {
             if(decimal.TryParse(gradeString, out decimal numericGrade) && IsValid(numericGrade))
             {
-                return Some<Grade>(new(numericGrade));
+                return Some<Grade>(new Grade(numericGrade));
             }
             else
             {
