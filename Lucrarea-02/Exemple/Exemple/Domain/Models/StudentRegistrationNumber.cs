@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Exemple.Domain.Exceptions;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Exemple.Domain
 {
@@ -23,6 +19,11 @@ namespace Exemple.Domain
             {
                 throw new InvalidStudentRegistrationNumberException("");
             }
+        }
+
+        public StudentRegistrationNumber GetStudentRegistrationNumber()
+        {
+            return new StudentRegistrationNumber(Value);
         }
 
         public override string ToString()
