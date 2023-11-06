@@ -2,12 +2,10 @@
 using System;
 using System.Collections.Generic;
 using static Exemple.Domain.Models.ExamGrades;
-using static Exemple.Domain.ExamGradesOperation;
 using Exemple.Domain;
 using System.Threading.Tasks;
 using LanguageExt;
 using static LanguageExt.Prelude;
-using System.Net.Http;
 using Example.Data.Repositories;
 using Example.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +15,6 @@ namespace Exemple
 {
     class Program
     {
-        private static readonly Random random = new Random();
-
         private static string ConnectionString = "Server=LAPTOP-5O6G7HEC\\DEVELOPER;Database=PSSC-sample;Trusted_Connection=True;MultipleActiveResultSets=true";
 
         static async Task Main(string[] args)
@@ -27,14 +23,16 @@ namespace Exemple
             ILogger<PublishGradeWorkflow> logger = loggerFactory.CreateLogger<PublishGradeWorkflow>();
 
             var listOfGrades = ReadListOfGrades().ToArray();
-            PublishGradesCommand command = new(listOfGrades);
+            PublishGradesCommand command = new PublishGradesCommand(listOfGrades);
             var dbContextBuilder = new DbContextOptionsBuilder<GradesContext>()
                                                 .UseSqlServer(ConnectionString)
                                                 .UseLoggerFactory(loggerFactory);
+
             GradesContext gradesContext = new GradesContext(dbContextBuilder.Options);
-            StudentsRepository studentsRepository = new(gradesContext);
-            GradesRepository gradesRepository = new(gradesContext);
-            PublishGradeWorkflow workflow = new(studentsRepository, gradesRepository, logger);
+            StudentsRepository studentsRepository = new StudentsRepository(gradesContext);
+            GradesRepository gradesRepository = new GradesRepository(gradesContext);
+
+            PublishGradeWorkflow workflow = new PublishGradeWorkflow(studentsRepository, gradesRepository, logger);
             var result = await workflow.ExecuteAsync(command);
 
             result.Match(

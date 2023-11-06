@@ -1,11 +1,7 @@
 ﻿using LanguageExt;
 using static LanguageExt.Prelude;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Exemple.Domain.Exceptions;
 
 namespace Exemple.Domain.Models
 {
@@ -38,7 +34,7 @@ namespace Exemple.Domain.Models
         {
             if (IsValid(stringValue))
             {
-                return Some<StudentRegistrationNumber>(new(stringValue));
+                return Some<StudentRegistrationNumber>(new StudentRegistrationNumber(stringValue));
             }
             else
             {

@@ -1,7 +1,7 @@
 using Example.Data;
 using Example.Data.Repositories;
-using Exemple.Domain;
 using Exemple.Domain.Repositories;
+using Exemple.Domain.Workflows;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +25,7 @@ namespace Example.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<GradesContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("sql1")));
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddTransient<IGradesRepository, GradesRepository>();
             services.AddTransient<IStudentsRepository, StudentsRepository>();

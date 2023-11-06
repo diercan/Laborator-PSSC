@@ -1,6 +1,6 @@
 ﻿using Exemple.Domain.Models;
 using static Exemple.Domain.Models.ExamGradesPublishedEvent;
-using static Exemple.Domain.ExamGradesOperation;
+using static Exemple.Domain.Operations.ExamGradesOperation;
 using System;
 using static Exemple.Domain.Models.ExamGrades;
 using LanguageExt;
@@ -10,8 +10,9 @@ using Exemple.Domain.Repositories;
 using System.Linq;
 using static LanguageExt.Prelude;
 using Microsoft.Extensions.Logging;
+using Exemple.Domain.Commands;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Workflows
 {
     public class PublishGradeWorkflow
     {
@@ -46,11 +47,11 @@ namespace Exemple.Domain
                 );
         }
 
-        private async Task<Either<IExamGrades, PublishedExamGrades>> ExecuteWorkflowAsync(UnvalidatedExamGrades unvalidatedGrades, 
-                                                                                          IEnumerable<CalculatedSudentGrade> existingGrades, 
+        private async Task<Either<IExamGrades, PublishedExamGrades>> ExecuteWorkflowAsync(UnvalidatedExamGrades unvalidatedGrades,
+                                                                                          IEnumerable<CalculatedSudentGrade> existingGrades,
                                                                                           Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>> checkStudentExists)
         {
-            
+
             IExamGrades grades = await ValidateExamGrades(checkStudentExists, unvalidatedGrades);
             grades = CalculateFinalGrades(grades);
             grades = MergeGrades(grades, existingGrades);
@@ -68,7 +69,7 @@ namespace Exemple.Domain
 
         private Option<StudentRegistrationNumber> CheckStudentExists(IEnumerable<StudentRegistrationNumber> students, StudentRegistrationNumber studentRegistrationNumber)
         {
-            if(students.Any(s=>s == studentRegistrationNumber))
+            if (students.Any(s => s == studentRegistrationNumber))
             {
                 return Some(studentRegistrationNumber);
             }

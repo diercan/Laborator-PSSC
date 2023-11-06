@@ -38,7 +38,7 @@ namespace Exemple.Domain.Models
         {
             if(decimal.TryParse(gradeString, out decimal numericGrade) && IsValid(numericGrade))
             {
-                return Some<Grade>(new(numericGrade));
+                return Some<Grade>(new Grade(numericGrade));
             }
             else
             {

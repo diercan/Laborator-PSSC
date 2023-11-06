@@ -26,10 +26,10 @@ namespace Example.Data.Repositories
                           .AsNoTracking()
                           .ToListAsync())
                           .Select(result => new CalculatedSudentGrade(
-                                                    StudentRegistrationNumber: new(result.RegistrationNumber),
-                                                    ExamGrade: new(result.Exam ?? 0m),
-                                                    ActivityGrade: new(result.Activity ?? 0m),
-                                                    FinalGrade: new(result.Final ?? 0m))
+                                                    StudentRegistrationNumber: new StudentRegistrationNumber(result.RegistrationNumber),
+                                                    ExamGrade: new Grade(result.Exam ?? 0m),
+                                                    ActivityGrade: new Grade(result.Activity ?? 0m),
+                                                    FinalGrade: new Grade(result.Final ?? 0m))
                           { 
                             GradeId = result.GradeId
                           })

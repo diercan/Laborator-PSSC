@@ -1,5 +1,4 @@
-﻿using Exemple.Domain;
-using Exemple.Domain.Repositories;
+﻿using Exemple.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Linq;
@@ -12,6 +11,8 @@ using Exemple.Domain.Models;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using Exemple.Domain.Workflows;
+using Exemple.Domain.Commands;
 
 namespace Example.Api.Controllers
 {
@@ -60,11 +61,6 @@ namespace Example.Api.Controllers
                                           .AsReadOnly();
             PublishGradesCommand command = new(unvalidatedGrades);
             var result = await publishGradeWorkflow.ExecuteAsync(command);
-
-            //return result.Match<IActionResult>(
-            //    whenExamGradesPublishFaildEvent: failedEvent => StatusCode(StatusCodes.Status500InternalServerError, failedEvent.Reason),
-            //    whenExamGradesPublishScucceededEvent: successEvent => Ok()
-            //);
 
             return await result.MatchAsync(
                 whenExamGradesPublishFaildEvent: HandleFailure,
