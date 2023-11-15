@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Data", "Example.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.ReportGenerator", "Example.ReportGenerator\Example.ReportGenerator.csproj", "{29DE777C-CE1C-45DB-B098-9F76BF150FC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Api", "Example.Api\Example.Api.csproj", "{74C7C00F-D67D-4473-9303-CA5C8E11ED76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
