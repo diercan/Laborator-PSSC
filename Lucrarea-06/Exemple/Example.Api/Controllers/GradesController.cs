@@ -1,14 +1,7 @@
-﻿using Exemple.Domain.Repositories;
+using Exemple.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System;
 using Example.Api.Models;
 using Exemple.Domain.Models;
-using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
 using Exemple.Domain.Workflows;
@@ -54,7 +47,7 @@ namespace Example.Api.Controllers
         }));
 
         [HttpPost]
-        public async Task<IActionResult> PublishGrades([FromBody]InputGrade[] grades)
+        public async Task<IActionResult> PublishGrades([FromBody] InputGrade[] grades)
         {
             var unvalidatedGrades = grades.Select(MapInputGradeToUnvalidatedGrade)
                                           .ToList()
@@ -71,7 +64,7 @@ namespace Example.Api.Controllers
         private Task<IActionResult> HandleFailure(ExamGradesPublishedEvent.ExamGradesPublishFaildEvent failedEvent)
         {
             return Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status500InternalServerError, failedEvent.Reason));
-        } 
+        }
 
         private async Task<IActionResult> HandleSuccess(ExamGradesPublishedEvent.ExamGradesPublishScucceededEvent successEvent)
         {

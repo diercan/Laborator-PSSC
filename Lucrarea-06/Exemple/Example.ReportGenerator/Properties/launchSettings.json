@@ -12,8 +12,8 @@
     "Example.ReportGenerator": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "launchUrl": "weatherforecast",
+      //"launchBrowser": true,
+      //"launchUrl": "weatherforecast",
       "applicationUrl": "https://localhost:7286;http://localhost:5286",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

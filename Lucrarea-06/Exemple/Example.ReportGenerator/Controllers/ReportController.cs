@@ -16,12 +16,15 @@ namespace Example.ReportGenerator.Controllers
         [HttpPost("semester-report")]
         public IActionResult GenerateReport()
         {
+            _logger.LogInformation("Landed on GenerateReport Action");
             return Ok("Report generated sucessfully");
         }
 
         [HttpPost("scholarship")]
         public IActionResult ScholarshipCalculation()
         {
+            _logger.LogInformation("Landed on ScholarshipCalculation Action");
+
             return Ok("Sholarship calculated sucessfully");
         }
     }
