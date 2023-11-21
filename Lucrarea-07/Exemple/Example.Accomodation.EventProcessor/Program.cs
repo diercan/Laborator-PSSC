@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.Azure;
+﻿using Example.Events;
+using Example.Events.ServiceBus;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using System;
-using Example.Events.ServiceBus;
-using Example.Events;
 
 namespace Example.Accomodation.EventProcessor
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -16,18 +15,18 @@ namespace Example.Accomodation.EventProcessor
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddAzureClients(builder =>
-                {
-                    builder.AddServiceBusClient(hostContext.Configuration.GetConnectionString("ServiceBus"));
-                });
+                Host.CreateDefaultBuilder(args)
+                    .ConfigureServices((hostContext, services) =>
+                    {
+                        services.AddAzureClients(builder =>
+                        {
+                            builder.AddServiceBusClient(hostContext.Configuration.GetConnectionString("ServiceBus"));
+                        });
 
-                services.AddSingleton<IEventListener, ServiceBusTopicEventListener>();
-                services.AddSingleton<IEventHandler, GradesPublishedEventHandler>();
+                        services.AddSingleton<IEventListener, ServiceBusTopicEventListener>();
+                        services.AddSingleton<IEventHandler, GradesPublishedEventHandler>();
 
-                services.AddHostedService<Worker>();
-            });
+                        services.AddHostedService<Worker>();
+                    });
     }
 }

@@ -1,11 +1,12 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Example.Data;
+using Example.Data.Repositories;
+using Example.Events;
+using Exemple.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Example.Events.ServiceBus;
+using Microsoft.Extensions.Azure;
+using Microsoft.OpenApi.Models;
+using Exemple.Domain.Workflows;
 
 namespace Example.Api
 {
@@ -13,14 +14,53 @@ namespace Example.Api
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
-        }
+            var builder = WebApplication.CreateBuilder(args);
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+            // Add services to the container.
+            builder.Services.AddDbContext<GradesContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                options.EnableSensitiveDataLogging();
+            });
+
+            builder.Services.AddTransient<IGradesRepository, GradesRepository>();
+            builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
+            builder.Services.AddTransient<PublishGradeWorkflow>();
+            builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
+            
+            builder.Services.AddAzureClients(client =>
+            {
+                client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+            });
+
+
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
+            });
+
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Example.Api v1"));
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            app.Run();
+        }
     }
 }

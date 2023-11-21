@@ -3,7 +3,8 @@
     "Example.Accomodation.EventProcessor": {
       "commandName": "Project",
       "environmentVariables": {
-        "NETCORE_ENVIRONMENT": "development"
+        "NETCORE_ENVIRONMENT": "development",
+        "ConnectionStrings:ServiceBus": "[]"
       }
     }
   }

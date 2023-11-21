@@ -1,12 +1,6 @@
 ﻿using Example.Dto.Events;
 using Example.Events;
 using Example.Events.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Exemple.Domain.Models.ExamGradesPublishedEvent;
 
 namespace Example.Accomodation.EventProcessor
 {

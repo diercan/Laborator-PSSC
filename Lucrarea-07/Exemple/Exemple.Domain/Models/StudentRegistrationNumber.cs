@@ -1,6 +1,7 @@
 ﻿using LanguageExt;
 using static LanguageExt.Prelude;
 using System.Text.RegularExpressions;
+using Exemple.Domain.Exceptions;
 
 namespace Exemple.Domain.Models
 {
@@ -19,7 +20,7 @@ namespace Exemple.Domain.Models
             }
             else
             {
-                throw new InvalidStudentRegistrationNumberException("");
+                throw new InvalidStudentRegistrationNumberException($"{Value} is an invalid student registration number");
             }
         }
 

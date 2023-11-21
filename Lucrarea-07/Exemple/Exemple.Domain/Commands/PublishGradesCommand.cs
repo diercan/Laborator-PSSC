@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Exemple.Domain.Models.ExamGrades;
+﻿using System.Collections.Generic;
+using Exemple.Domain.Models;
 
-namespace Exemple.Domain.Models
+namespace Exemple.Domain.Commands
 {
     public record PublishGradesCommand
     {
