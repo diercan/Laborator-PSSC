@@ -1,8 +1,5 @@
 ﻿using Example.Events;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Example.Accomodation.EventProcessor
 {

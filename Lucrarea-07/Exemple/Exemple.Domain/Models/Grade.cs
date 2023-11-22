@@ -1,4 +1,5 @@
-﻿using LanguageExt;
+﻿using Exemple.Domain.Exceptions;
+using LanguageExt;
 using System;
 using static LanguageExt.Prelude;
 

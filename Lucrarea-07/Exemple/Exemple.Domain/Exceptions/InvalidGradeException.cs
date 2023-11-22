@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Exemple.Domain.Models
+namespace Exemple.Domain.Exceptions
 {
     [Serializable]
     internal class InvalidGradeException : Exception

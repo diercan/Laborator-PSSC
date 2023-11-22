@@ -1,14 +1,9 @@
-﻿using Exemple.Domain;
-using Exemple.Domain.Repositories;
+﻿using Exemple.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System;
 using Example.Api.Models;
 using Exemple.Domain.Models;
+using Exemple.Domain.Workflows;
+using Exemple.Domain.Commands;
 
 namespace Example.Api.Controllers
 {

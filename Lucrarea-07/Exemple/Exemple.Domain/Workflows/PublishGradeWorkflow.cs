@@ -1,6 +1,6 @@
 ﻿using Exemple.Domain.Models;
 using static Exemple.Domain.Models.ExamGradesPublishedEvent;
-using static Exemple.Domain.ExamGradesOperation;
+using static Exemple.Domain.Operations.ExamGradesOperation;
 using System;
 using static Exemple.Domain.Models.ExamGrades;
 using LanguageExt;
@@ -13,8 +13,9 @@ using Microsoft.Extensions.Logging;
 using Example.Events;
 using Example.Dto.Events;
 using Example.Dto.Models;
+using Exemple.Domain.Commands;
 
-namespace Exemple.Domain
+namespace Exemple.Domain.Workflows
 {
     public class PublishGradeWorkflow
     {
@@ -52,14 +53,14 @@ namespace Exemple.Domain
                          let successfulEvent = new ExamGradesPublishScucceededEvent(grades, publishedGrades.PublishedDate)
                          let eventToPublish = new GradesPublishedEvent()
                          {
-                             Grades = grades.Select(g=>new StudentGradeDto()
+                             Grades = grades.Select(g => new StudentGradeDto()
                              {
                                  Name = g.StudentRegistrationNumber.Value, //TODO get name here
                                  StudentRegistrationNumber = g.StudentRegistrationNumber.Value,
                                  ActivityGrade = g.ActivityGrade.Value,
                                  ExamGrade = g.ExamGrade.Value,
                                  FinalGrade = g.FinalGrade.Value
-                                 
+
                              }).ToList()
                          }
                          from publishEventResult in eventSender.SendAsync("grades", eventToPublish)
