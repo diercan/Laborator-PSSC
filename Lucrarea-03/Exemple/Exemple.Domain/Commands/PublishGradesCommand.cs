@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using Exemple.Domain.Models;
+﻿using Examples.Domain.Models;
+using System.Collections.Generic;
 
-namespace Exemple.Domain.Commands
+namespace Examples.Domain.Commands
 {
-    public record PublishGradesCommand
+  public record PublishGradesCommand
+  {
+    public PublishGradesCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
     {
-        public PublishGradesCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
-        {
-            InputExamGrades = inputExamGrades;
-        }
-
-        public IReadOnlyCollection<UnvalidatedStudentGrade> InputExamGrades { get; }
+      InputExamGrades = inputExamGrades;
     }
+
+    public IReadOnlyCollection<UnvalidatedStudentGrade> InputExamGrades { get; }
+  }
 }

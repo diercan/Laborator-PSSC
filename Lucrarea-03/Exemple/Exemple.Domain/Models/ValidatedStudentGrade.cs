@@ -1,4 +1,4 @@
-﻿namespace Exemple.Domain.Models
+﻿namespace Examples.Domain.Models
 {
-	public record ValidatedStudentGrade(StudentRegistrationNumber StudentRegistrationNumber, Grade ExamGrade, Grade ActivityGrade);
+  public record ValidatedStudentGrade(StudentRegistrationNumber StudentRegistrationNumber, Grade ExamGrade, Grade ActivityGrade);
 }

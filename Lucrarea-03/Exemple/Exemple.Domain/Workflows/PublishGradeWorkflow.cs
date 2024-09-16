@@ -1,28 +1,37 @@
-﻿using Exemple.Domain.Models;
-using static Exemple.Domain.Models.ExamGradesPublishedEvent;
-using static Exemple.Domain.Operations.ExamGradesOperation;
+﻿using Examples.Domain.Commands;
+using Examples.Domain.Models;
+using Examples.Domain.Operations;
 using System;
-using static Exemple.Domain.Models.ExamGrades;
-using Exemple.Domain.Commands;
+using static Examples.Domain.Models.ExamGrades;
+using static Examples.Domain.Models.ExamGradesPublishedEvent;
 
-namespace Exemple.Domain.Workflows
+namespace Examples.Domain.Workflows
 {
-    public class PublishGradeWorkflow
+  public class PublishGradeWorkflow
+  {
+    public IExamGradesPublishedEvent Execute(PublishGradesCommand command, Func<StudentRegistrationNumber, bool> checkStudentExists)
     {
-        public IExamGradesPublishedEvent Execute(PublishGradesCommand command, Func<StudentRegistrationNumber, bool> checkStudentExists)
-        {
-            UnvalidatedExamGrades unvalidatedGrades = new UnvalidatedExamGrades(command.InputExamGrades);
-            IExamGrades grades = ValidateExamGrades(checkStudentExists, unvalidatedGrades);
-            grades = CalculateFinalGrades(grades);
-            grades = PublishExamGrades(grades);
+      UnvalidatedExamGrades unvalidatedGrades = new(command.InputExamGrades);
 
-            return grades.Match(
-                    whenUnvalidatedExamGrades: unvalidatedGrades => new ExamGradesPublishFaildEvent("Unexpected unvalidated state") as IExamGradesPublishedEvent,
-                    whenInvalidatedExamGrades: invalidGrades => new ExamGradesPublishFaildEvent(invalidGrades.Reason),
-                    whenValidatedExamGrades: validatedGrades => new ExamGradesPublishFaildEvent("Unexpected validated state"),
-                    whenCalculatedExamGrades: calculatedGrades => new ExamGradesPublishFaildEvent("Unexpected calculated state"),
-                    whenPublishedExamGrades: publishedGrades => new ExamGradesPublishScucceededEvent(publishedGrades.Csv, publishedGrades.PublishedDate)
-                );
-        }
+      ValidateExamGradesOperation validateExamGrades = new(checkStudentExists);
+      IExamGrades grades = validateExamGrades.ValidateExamGrades(unvalidatedGrades);
+
+      CalculateFinalGradesOperation calculateFinalGrades = new();
+      grades = calculateFinalGrades.CalculateFinalGrades(grades);
+
+      PublishExamGradesOperation publishExamGrades = new();
+      grades = publishExamGrades.PublishExamGrades(grades);
+
+
+      return grades switch
+      {
+        UnvalidatedExamGrades _ => new ExamGradesPublishFailedEvent("Unexpected unvalidated state"),
+        InvalidatedExamGrades invalidGrades => new ExamGradesPublishFailedEvent(invalidGrades.Reason),
+        ValidatedExamGrades validatedGrades => new ExamGradesPublishFailedEvent("Unexpected validated state"),
+        CalculatedExamGrades calculatedGrades => new ExamGradesPublishFailedEvent("Unexpected calculated state"),
+        PublishedExamGrades publishedGrades => new ExamGradesPublishSucceededEvent(publishedGrades.Csv, publishedGrades.PublishedDate),
+        _ => throw new NotImplementedException()
+      };
     }
+  }
 }
