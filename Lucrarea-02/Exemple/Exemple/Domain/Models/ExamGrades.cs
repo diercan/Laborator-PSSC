@@ -1,20 +1,18 @@
-﻿using CSharp.Choices;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Exemple.Domain
+namespace Examples.Domain.Models
 {
-    [AsChoice]
-    public static partial class ExamGrades
-    {
-        public interface IExamGrades { }
+  public static partial class ExamGrades
+  {
+    public interface IExamGrades { }
 
-        public record UnvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> GradesList) : IExamGrades;
+    public record UnvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> GradesList) : IExamGrades;
 
-        public record InvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> GradesList, string reason) : IExamGrades;
+    public record InvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> GradesList, string Reason) : IExamGrades;
 
-        public record ValidatedExamGrades(IReadOnlyCollection<ValidatedStudentGrade> GradesList) : IExamGrades;
+    public record ValidatedExamGrades(IReadOnlyCollection<ValidatedStudentGrade> GradesList) : IExamGrades;
 
-        public record PublishedExamGrades(IReadOnlyCollection<ValidatedStudentGrade> GradesList, DateTime PublishedDate) : IExamGrades;
-    }
+    public record PublishedExamGrades(IReadOnlyCollection<ValidatedStudentGrade> GradesList, DateTime PublishedDate) : IExamGrades;
+  }
 }

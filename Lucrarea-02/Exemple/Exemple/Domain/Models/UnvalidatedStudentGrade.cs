@@ -1,4 +1,4 @@
-﻿namespace Exemple.Domain
+﻿namespace Examples.Domain.Models
 {
-    public record UnvalidatedStudentGrade(string StudentRegistrationNumber, string Grade);
+  public record UnvalidatedStudentGrade(string StudentRegistrationNumber, string Grade);
 }
