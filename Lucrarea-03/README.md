@@ -111,6 +111,40 @@ By using LINQ to perform transformations on lists, you can write more expressive
 
 In summary, LINQ provides a powerful and expressive way to perform transformations on lists in C#. By using operations like `Select`, `Where`, `OrderBy`, and `GroupBy`, you can easily manipulate and transform data within a list, resulting in more readable and efficient code.
 
+## LINQ Aggregate
+
+LINQ's `Aggregate` method is a powerful tool for performing iterative calculations or aggregations on a collection of elements. It allows you to apply a specified function to each element in the collection, accumulating a result as you iterate through the elements.
+
+The syntax for using `Aggregate` is as follows:
+
+```csharp
+collection.Aggregate(seed, (accumulator, element) => expression)
+```
+
+Here, `collection` represents the input collection, `seed` is the initial value of the accumulator, and `expression` is the function that defines the aggregation logic. The `accumulator` parameter represents the intermediate result of the aggregation, and `element` represents the current element being processed.
+
+For example, let's say we have a list of numbers:
+
+```csharp
+List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+```
+
+We can use `Aggregate` to calculate the sum of all the numbers in the list:
+
+```csharp
+int sum = numbers.Aggregate(0, (acc, num) => acc + num);
+```
+
+In this example, the `seed` value is `0`, and the `expression` `(acc, num) => acc + num` defines the addition operation. The `Aggregate` method iterates through each element in the `numbers` list, adding it to the accumulator `acc`. The final result is stored in the `sum` variable.
+
+The `Aggregate` method can also be used to perform other types of aggregations, such as finding the maximum or minimum value, concatenating strings, or even building complex objects. The key is to provide the appropriate seed value and define the aggregation logic in the expression.
+
+It's important to note that the `Aggregate` method throws an exception if the collection is empty. To handle this scenario, you can use the `Aggregate` method overload that takes a seed value and a result selector function, which allows you to provide a default value in case the collection is empty.
+
+In summary, the `Aggregate` method in LINQ provides a powerful way to perform iterative calculations or aggregations on a collection of elements. By specifying a seed value and an aggregation function, you can accumulate a result as you iterate through the elements. It's a versatile tool that can be used for various types of aggregations and calculations in your code.
+
 ## Referințe
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018  
+
+[2] Microsoft Documentation, [Enumerable.Aggregate Method](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable.aggregate?view=net-5.0)

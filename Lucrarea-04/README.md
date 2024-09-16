@@ -1,30 +1,62 @@
-# Lucrarea 4: Implementarea unui „workflow” DDD 
+# Lucrarea 4: EF Core
 
 **Context**: Coșul de cumpărături pentru un magazin virtual. 
 
-**Obiective**: reprezentarea valorilor opționale, tratarea erorilor
+**Obiective**: implementarea accesului la baza de date folosind EF Core
 
-**Sarcina 1**
+## Sarcină
 
-Analizați și rulați soluția din directorul exemple. Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
+Creați o nouă bază de date SQL care va conține următoarele tabele: 
+* Products (Id, Code, Name, Price, QuantityType), 
+* Customers(Id, Code, Name), 
+* Order(Id, Date, DeliveryAddress, CustomerId), 
+* OrderItem(Id, OrderId, ProductId, Quantity)
 
-**Sarcina 2**
+Implementați un context EF.
 
-În contextul workflow-ului pentru plasarea unei comenzi folosiți:
-* Option < T > [4] pentru a reprezenta rezultatul conversiei de la string la codul produsului, respectiv cantitatea
-* Try < T >[5] sau TryAsync < T >[6] pentru a reprezenta rezultatele următoarelor funcții
-    * verificarea existenței produsului pe baza codului de produs
-    * verificarea stocului
-    * verificarea adresei de livrare
-* folositi expresii LINQ pentru a combina mai multe rezultate de tipul Option < T >, respectiv mai multe rezultate de tipul Try < T >/TryAsync < T >. Folosiți tipul Either/EitherAsync pentru a putea combina tipuri diferite de rezultate.
+Realizați un meniu în linie de comandă ce permite adăugarea de înregistrări in cele 4 tabele și afișarea conținutului fiecărei tabele.
 
-**Referințe**
+## GitHub Copilot
 
-[1] https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions 
+### EF Core
+To set up EF Core DB Context using the SQL first approach, follow these steps:
 
-[2] https://www.nuget.org/packages/CSharp.Choices/
+1. Define your database schema: Create the necessary tables and define their relationships. In your case, you need to create the following tables: Products, Customers, Order, and OrderItem. Define the columns and their data types for each table.
 
-[3] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018  
-[4] https://github.com/louthy/language-ext#option
-[5] https://louthy.github.io/language-ext/LanguageExt.Core/LanguageExt/Try_A.htm
-[6] https://louthy.github.io/language-ext/LanguageExt.Core/LanguageExt/TryAsync_A.htm
+2. Install the necessary NuGet packages: Open your project in Visual Studio and install the following NuGet packages:
+    - Microsoft.EntityFrameworkCore.SqlServer: This package provides the SQL Server database provider for EF Core.
+    - Microsoft.EntityFrameworkCore.Design: This package provides design-time services for EF Core, including migrations.
+
+3. Create a new class for your DB Context: In your project, create a new class that derives from the DbContext class. This class will represent your database context and will provide access to the tables and their data. For example, you can name this class "ShoppingContext".
+
+4. Configure the DB Context: In the ShoppingContext class, override the OnConfiguring method to specify the connection string for your database. You can use the SqlConnectionStringBuilder class to build the connection string dynamically or hardcode it. For example:
+
+    ```csharp
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+         var connectionString = "YourConnectionString";
+         optionsBuilder.UseSqlServer(connectionString);
+    }
+    ```
+
+5. Define the DbSet properties: Inside the ShoppingContext class, define DbSet properties for each of your tables. This will allow you to query and manipulate the data in those tables. For example:
+
+    ```csharp
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
+    ```
+
+6. Use the DB Context in your application: Now you can use the ShoppingContext class in your application to interact with the database. You can add, update, or query data using the DbSet properties defined in the context.
+
+Remember to replace "YourConnectionString" with the actual connection string for your SQL Server database.
+
+For more information and advanced usage of EF Core, refer to the official documentation and other online resources.
+
+
+## Referințe
+
+[1] https://learn.microsoft.com/en-us/ef/core/
+[2] https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup?view=sql-server-ver16
+
