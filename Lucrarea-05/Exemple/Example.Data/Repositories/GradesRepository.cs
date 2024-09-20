@@ -1,7 +1,6 @@
 ﻿using Example.Data.Models;
 using Examples.Domain.Models;
 using Exemple.Domain.Repositories;
-using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
