@@ -21,7 +21,7 @@ namespace Examples.Domain.Operations
       string invalidReason = string.Empty;
       foreach (UnvalidatedStudentGrade unvalidatedGrade in examGrades.GradeList)
       {
-        if (Grade.TryParseGrade(unvalidatedGrade.ExamGrade, out Grade examGrade))
+        if (!Grade.TryParseGrade(unvalidatedGrade.ExamGrade, out Grade examGrade))
         {
           invalidReason = $"Invalid exam grade ({unvalidatedGrade.StudentRegistrationNumber}, {unvalidatedGrade.ExamGrade})";
           isValidList = false;

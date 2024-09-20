@@ -25,7 +25,7 @@ namespace Examples.Domain.Operations
     {
       StringBuilder csv = new();
       calculatedExam.GradeList.Aggregate(csv, (export, grade) =>
-        export.AppendLine($"{grade.StudentRegistrationNumber.Value}, {grade.ExamGrade}, {grade.ActivityGrade}, , {grade.FinalGrade}"));
+        export.AppendLine($"{grade.StudentRegistrationNumber.Value}, {grade.ExamGrade}, {grade.ActivityGrade}, {grade.FinalGrade}"));
 
       PublishedExamGrades publishedExamGrades = new(calculatedExam.GradeList, csv.ToString(), DateTime.Now);
       return publishedExamGrades;

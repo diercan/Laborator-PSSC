@@ -11,9 +11,9 @@ namespace Examples.Domain.Operations
     {
     }
 
-    public IExamGrades CalculateFinalGrades(IExamGrades examGrades) => examGrades switch
+    public IExamGrades CalculateFinalGrades(IExamGrades examGrades, List<CalculatedStudentGrade> existingGrades) => examGrades switch
     {
-      ValidatedExamGrades validExamGrades => CalculateFinalGradesInternal(validExamGrades),
+      ValidatedExamGrades validExamGrades => CalculateFinalGradesInternal(validExamGrades, existingGrades),
 
       UnvalidatedExamGrades unvalidatedExam => unvalidatedExam,
       InvalidExamGrades invalidExam => invalidExam,
@@ -24,15 +24,23 @@ namespace Examples.Domain.Operations
       _ => throw new System.NotImplementedException()
     };
 
-    private CalculatedExamGrades CalculateFinalGradesInternal(ValidatedExamGrades validExamGrades)
+    private CalculatedExamGrades CalculateFinalGradesInternal(ValidatedExamGrades validExamGrades, List<CalculatedStudentGrade> existingGrades)
     {
       IEnumerable<CalculatedStudentGrade> calculatedGrade = validExamGrades.GradeList
         .Select(validGrade =>
-          new CalculatedStudentGrade(
+        {
+          CalculatedStudentGrade? existingGrade = existingGrades.FirstOrDefault(
+            grade => grade.StudentRegistrationNumber.Equals(validGrade.StudentRegistrationNumber));
+          return new CalculatedStudentGrade(
             validGrade.StudentRegistrationNumber,
             validGrade.ExamGrade,
             validGrade.ActivityGrade,
-            validGrade.ExamGrade + validGrade.ActivityGrade));
+            validGrade.ExamGrade + validGrade.ActivityGrade)
+          {
+            GradeId = existingGrade?.GradeId ?? 0,
+            IsUpdated = existingGrade is not null
+          };
+        });
       return new CalculatedExamGrades(calculatedGrade.ToList().AsReadOnly());
     }
   }

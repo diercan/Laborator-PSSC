@@ -72,7 +72,7 @@ namespace Example.Data.Repositories
     private void AddNewGrades(PublishedExamGrades grades, ILookup<string, StudentDto> students)
     {
       IEnumerable<GradeDto> newGrades = grades.GradeList
-        .Where(g => g.IsUpdated && g.GradeId == 0)
+        .Where(g => !g.IsUpdated && g.GradeId == 0)
         .Select(g => new GradeDto()
         {
           StudentId = students[g.StudentRegistrationNumber.Value].Single().StudentId,

@@ -29,16 +29,21 @@ namespace Examples.Domain.Workflows
     {
       try
       {
+        //load state from database
         IEnumerable<string> studentsToCheck = command.InputExamGrades.Select(grade => grade.StudentRegistrationNumber);
         List<StudentRegistrationNumber> existingStudents = await studentsRepository.GetExistingStudentsAsync(studentsToCheck);
+        List<CalculatedStudentGrade> existingGrades = await gradesRepository.GetExistingGradesAsync();
 
-        IExamGrades grades = ExecuteBusinessLogic(command, existingStudents);
+        //execute pure business logic
+        IExamGrades grades = ExecuteBusinessLogic(command, existingStudents, existingGrades);
 
+        //save new state to database
         if (grades is PublishedExamGrades publishedGrades)
         {
           await gradesRepository.SaveGradesAsync(publishedGrades);
         }
 
+        //evaluate the state of the entity and generate the appropriate event
         return ConvertToEvent(grades);
       }
       catch (Exception ex)
@@ -48,17 +53,22 @@ namespace Examples.Domain.Workflows
       }
     }
 
-    private static IExamGrades ExecuteBusinessLogic(PublishGradesCommand command, List<StudentRegistrationNumber> existingStudents)
+    private static IExamGrades ExecuteBusinessLogic(
+      PublishGradesCommand command,
+      List<StudentRegistrationNumber> existingStudents,
+      List<CalculatedStudentGrade> existingGrades)
     {
-      //start with unvlaidate state
+      //start with unvalidated state
       UnvalidatedExamGrades unvalidatedGrades = new(command.InputExamGrades);
 
-      Func<StudentRegistrationNumber, bool> checkStudentExists = student => existingStudents.Any(s => s == student);
+      //perform all business operations, operations are pure functions,
+      //they could also be injected as dependencies in the constructor
+      Func<StudentRegistrationNumber, bool> checkStudentExists = student => existingStudents.Any(s => s.Equals(student));
       ValidateExamGradesOperation validateExamGrades = new(checkStudentExists);
       IExamGrades grades = validateExamGrades.ValidateExamGrades(unvalidatedGrades);
 
       CalculateFinalGradesOperation calculateFinalGrades = new();
-      grades = calculateFinalGrades.CalculateFinalGrades(grades);
+      grades = calculateFinalGrades.CalculateFinalGrades(grades, existingGrades);
 
       PublishExamGradesOperation publishExamGrades = new();
       grades = publishExamGrades.PublishExamGrades(grades);
