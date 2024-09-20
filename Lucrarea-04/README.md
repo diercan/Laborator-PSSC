@@ -4,7 +4,11 @@
 
 **Obiective**: implementarea accesului la baza de date folosind EF Core
 
-## Sarcină
+## Sarcină 1
+
+Analizați exemplul.
+
+## Sarcină 2
 
 Creați o nouă bază de date SQL care va conține următoarele tabele: 
 * Products (Id, Code, Name, Price, QuantityType), 
