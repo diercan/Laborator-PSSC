@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 
-namespace Exemple.Domain.Models
+namespace Examples.Domain.Models
 {
-    public record PublishGradesCommand
+  public record PublishGradesCommand
+  {
+    public PublishGradesCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
     {
-        public PublishGradesCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
-        {
-            InputExamGrades = inputExamGrades;
-        }
-
-        public IReadOnlyCollection<UnvalidatedStudentGrade> InputExamGrades { get; }
+      InputExamGrades = inputExamGrades;
     }
+
+    public IReadOnlyCollection<UnvalidatedStudentGrade> InputExamGrades { get; }
+  }
 }

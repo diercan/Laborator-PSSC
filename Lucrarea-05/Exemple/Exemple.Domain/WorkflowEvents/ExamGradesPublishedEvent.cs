@@ -1,33 +1,31 @@
-﻿using CSharp.Choices;
-using System;
+﻿using System;
 
-namespace Exemple.Domain.Models
+namespace Examples.Domain.WorkflowEvents
 {
-    [AsChoice]
-    public static partial class ExamGradesPublishedEvent
+  public static partial class ExamGradesPublishedEvent
+  {
+    public interface IExamGradesPublishedEvent { }
+
+    public record ExamGradesPublishSucceededEvent : IExamGradesPublishedEvent
     {
-        public interface IExamGradesPublishedEvent { }
+      public string Csv { get; }
+      public DateTime PublishedDate { get; }
 
-        public record ExamGradesPublishScucceededEvent : IExamGradesPublishedEvent 
-        {
-            public string Csv{ get;}
-            public DateTime PublishedDate { get; }
-
-            internal ExamGradesPublishScucceededEvent(string csv, DateTime publishedDate)
-            {
-                Csv = csv;
-                PublishedDate = publishedDate;
-            }
-        }
-
-        public record ExamGradesPublishFaildEvent : IExamGradesPublishedEvent 
-        {
-            public string Reason { get; }
-
-            internal ExamGradesPublishFaildEvent(string reason)
-            {
-                Reason = reason;
-            }
-        }
+      internal ExamGradesPublishSucceededEvent(string csv, DateTime publishedDate)
+      {
+        Csv = csv;
+        PublishedDate = publishedDate;
+      }
     }
+
+    public record ExamGradesPublishFailedEvent : IExamGradesPublishedEvent
+    {
+      public string Reason { get; }
+
+      internal ExamGradesPublishFailedEvent(string reason)
+      {
+        Reason = reason;
+      }
+    }
+  }
 }

@@ -1,14 +1,14 @@
-﻿using Exemple.Domain.Models;
-using LanguageExt;
+﻿using Examples.Domain.Models;
 using System.Collections.Generic;
-using static Exemple.Domain.Models.ExamGrades;
+using System.Threading.Tasks;
+using static Examples.Domain.Models.ExamGrades;
 
 namespace Exemple.Domain.Repositories
 {
-    public interface IGradesRepository
-    {
-        TryAsync<List<CalculatedSudentGrade>> TryGetExistingGrades();
+  public interface IGradesRepository
+  {
+    Task<List<CalculatedStudentGrade>> GetExistingGradesAsync();
 
-        TryAsync<Unit> TrySaveGrades(PublishedExamGrades grades);
-    }
+    Task SaveGradesAsync(PublishedExamGrades grades);
+  }
 }

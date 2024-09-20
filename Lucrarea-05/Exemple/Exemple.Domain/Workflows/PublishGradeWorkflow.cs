@@ -1,94 +1,82 @@
-﻿using Exemple.Domain.Models;
-using static Exemple.Domain.Models.ExamGradesPublishedEvent;
-using static Exemple.Domain.ExamGradesOperation;
-using System;
-using static Exemple.Domain.Models.ExamGrades;
-using LanguageExt;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using Examples.Domain.Models;
+using Examples.Domain.Operations;
+using Examples.Domain.Repositories;
 using Exemple.Domain.Repositories;
-using System.Linq;
-using static LanguageExt.Prelude;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static Examples.Domain.Models.ExamGrades;
+using static Examples.Domain.WorkflowEvents.ExamGradesPublishedEvent;
 
-namespace Exemple.Domain
+namespace Examples.Domain.Workflows
 {
-    public class PublishGradeWorkflow
+  public class PublishGradeWorkflow
+  {
+    private readonly IStudentsRepository studentsRepository;
+    private readonly IGradesRepository gradesRepository;
+    private readonly ILogger<PublishGradeWorkflow> logger;
+
+    public PublishGradeWorkflow(IStudentsRepository studentsRepository, IGradesRepository gradesRepository, ILogger<PublishGradeWorkflow> logger)
     {
-        private readonly IStudentsRepository studentsRepository;
-        private readonly IGradesRepository gradesRepository;
-        private readonly ILogger<PublishGradeWorkflow> logger;
-
-        public PublishGradeWorkflow(IStudentsRepository studentsRepository, IGradesRepository gradesRepository, ILogger<PublishGradeWorkflow> logger)
-        {
-            this.studentsRepository = studentsRepository;
-            this.gradesRepository = gradesRepository;
-            this.logger = logger;
-        }
-
-        public async Task<IExamGradesPublishedEvent> ExecuteAsync(PublishGradesCommand command)
-        {
-            UnvalidatedExamGrades unvalidatedGrades = new UnvalidatedExamGrades(command.InputExamGrades);
-
-            var result = from students in studentsRepository.TryGetExistingStudents(unvalidatedGrades.GradeList.Select(grade => grade.StudentRegistrationNumber))
-                                          .ToEither(ex => new FailedExamGrades(unvalidatedGrades.GradeList, ex) as IExamGrades)
-                         from existingGrades in gradesRepository.TryGetExistingGrades()
-                                          .ToEither(ex => new FailedExamGrades(unvalidatedGrades.GradeList, ex) as IExamGrades)
-                         let checkStudentExists = (Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>>)(student => CheckStudentExists(students, student))
-                         from publishedGrades in ExecuteWorkflowAsync(unvalidatedGrades, existingGrades, checkStudentExists).ToAsync()
-                         from _ in gradesRepository.TrySaveGrades(publishedGrades)
-                                          .ToEither(ex => new FailedExamGrades(unvalidatedGrades.GradeList, ex) as IExamGrades)
-                         select publishedGrades;
-
-            return await result.Match(
-                    Left: examGrades => GenerateFailedEvent(examGrades) as IExamGradesPublishedEvent,
-                    Right: publishedGrades => new ExamGradesPublishScucceededEvent(publishedGrades.Csv, publishedGrades.PublishedDate)
-                );
-        }
-
-        private async Task<Either<IExamGrades, PublishedExamGrades>> ExecuteWorkflowAsync(UnvalidatedExamGrades unvalidatedGrades, 
-                                                                                          IEnumerable<CalculatedSudentGrade> existingGrades, 
-                                                                                          Func<StudentRegistrationNumber, Option<StudentRegistrationNumber>> checkStudentExists)
-        {
-            
-            IExamGrades grades = await ValidateExamGrades(checkStudentExists, unvalidatedGrades);
-            grades = CalculateFinalGrades(grades);
-            grades = MergeGrades(grades, existingGrades);
-            grades = PublishExamGrades(grades);
-
-            return grades.Match<Either<IExamGrades, PublishedExamGrades>>(
-                whenUnvalidatedExamGrades: unvalidatedGrades => Left(unvalidatedGrades as IExamGrades),
-                whenCalculatedExamGrades: calculatedGrades => Left(calculatedGrades as IExamGrades),
-                whenInvalidExamGrades: invalidGrades => Left(invalidGrades as IExamGrades),
-                whenFailedExamGrades: failedGrades => Left(failedGrades as IExamGrades),
-                whenValidatedExamGrades: validatedGrades => Left(validatedGrades as IExamGrades),
-                whenPublishedExamGrades: publishedGrades => Right(publishedGrades)
-            );
-        }
-
-        private Option<StudentRegistrationNumber> CheckStudentExists(IEnumerable<StudentRegistrationNumber> students, StudentRegistrationNumber studentRegistrationNumber)
-        {
-            if(students.Any(s=>s == studentRegistrationNumber))
-            {
-                return Some(studentRegistrationNumber);
-            }
-            else
-            {
-                return None;
-            }
-        }
-
-        private ExamGradesPublishFaildEvent GenerateFailedEvent(IExamGrades examGrades) =>
-            examGrades.Match<ExamGradesPublishFaildEvent>(
-                whenUnvalidatedExamGrades: unvalidatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(UnvalidatedExamGrades)}"),
-                whenInvalidExamGrades: invalidExamGrades => new ExamGradesPublishFaildEvent(invalidExamGrades.Reason),
-                whenValidatedExamGrades: validatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(ValidatedExamGrades)}"),
-                whenFailedExamGrades: failedExamGrades =>
-                {
-                    logger.LogError(failedExamGrades.Exception, failedExamGrades.Exception.Message);
-                    return new ExamGradesPublishFaildEvent(failedExamGrades.Exception.Message);
-                },
-                whenCalculatedExamGrades: calculatedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(CalculatedExamGrades)}"),
-                whenPublishedExamGrades: publishedExamGrades => new ExamGradesPublishFaildEvent($"Invalid state {nameof(PublishedExamGrades)}"));
+      this.studentsRepository = studentsRepository;
+      this.gradesRepository = gradesRepository;
+      this.logger = logger;
     }
+
+    public async Task<IExamGradesPublishedEvent> ExecuteAsync(PublishGradesCommand command)
+    {
+      try
+      {
+        IEnumerable<string> studentsToCheck = command.InputExamGrades.Select(grade => grade.StudentRegistrationNumber);
+        List<StudentRegistrationNumber> existingStudents = await studentsRepository.GetExistingStudentsAsync(studentsToCheck);
+
+        IExamGrades grades = ExecuteBusinessLogic(command, existingStudents);
+
+        if (grades is PublishedExamGrades publishedGrades)
+        {
+          await gradesRepository.SaveGradesAsync(publishedGrades);
+        }
+
+        return ConvertToEvent(grades);
+      }
+      catch (Exception ex)
+      {
+        logger.LogError(ex, "An error occurred while publishing grades");
+        return new ExamGradesPublishFailedEvent(ex.Message);
+      }
+    }
+
+    private static IExamGrades ExecuteBusinessLogic(PublishGradesCommand command, List<StudentRegistrationNumber> existingStudents)
+    {
+      //start with unvlaidate state
+      UnvalidatedExamGrades unvalidatedGrades = new(command.InputExamGrades);
+
+      Func<StudentRegistrationNumber, bool> checkStudentExists = student => existingStudents.Any(s => s == student);
+      ValidateExamGradesOperation validateExamGrades = new(checkStudentExists);
+      IExamGrades grades = validateExamGrades.ValidateExamGrades(unvalidatedGrades);
+
+      CalculateFinalGradesOperation calculateFinalGrades = new();
+      grades = calculateFinalGrades.CalculateFinalGrades(grades);
+
+      PublishExamGradesOperation publishExamGrades = new();
+      grades = publishExamGrades.PublishExamGrades(grades);
+      return grades;
+    }
+
+    private static IExamGradesPublishedEvent ConvertToEvent(IExamGrades grades)
+    {
+      return grades switch
+      {
+        UnvalidatedExamGrades _ => new ExamGradesPublishFailedEvent("Unexpected unvalidated state"),
+        InvalidExamGrades invalidGrades => new ExamGradesPublishFailedEvent(invalidGrades.Reason),
+        ValidatedExamGrades validatedGrades => new ExamGradesPublishFailedEvent("Unexpected validated state"),
+        CalculatedExamGrades calculatedGrades => new ExamGradesPublishFailedEvent("Unexpected calculated state"),
+        PublishedExamGrades publishedGrades => new ExamGradesPublishSucceededEvent(publishedGrades.Csv, publishedGrades.PublishedDate),
+        FailedExamGrades failedGrades => new ExamGradesPublishFailedEvent(failedGrades.Exception.Message),
+        _ => throw new NotImplementedException()
+      };
+    }
+  }
 }

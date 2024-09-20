@@ -2,19 +2,18 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSharp.Choices" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Example.Data\Example.Data.csproj" />
-    <ProjectReference Include="..\Exemple.Domain\Exemple.Domain.csproj" />
+    <ProjectReference Include="..\Example.Data\Examples.Data.csproj" />
+    <ProjectReference Include="..\Exemple.Domain\Examples.Domain.csproj" />
   </ItemGroup>
   
 </Project>
