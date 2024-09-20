@@ -62,7 +62,7 @@ namespace Examples
       List<UnvalidatedStudentGrade> listOfGrades = [];
       do
       {
-        //read registration number and grade and create a list of greads
+        //read registration number and grade and create a list of grades
         string? registrationNumber = ReadValue("Registration Number: ");
         if (string.IsNullOrEmpty(registrationNumber))
         {
