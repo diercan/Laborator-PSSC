@@ -13,7 +13,7 @@ namespace Examples
 {
   internal class Program
   {
-    private static readonly string ConnectionString = "Server=LAPTOP-5O6G7HEC\\DEVELOPER;Database=PSSC-sample;Trusted_Connection=True;MultipleActiveResultSets=true";
+    private static readonly string ConnectionString = "Server=.;Database=Student;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=true";
 
     private static async Task Main(string[] args)
     {
