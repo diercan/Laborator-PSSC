@@ -3,6 +3,7 @@ using Examples.Domain.Models;
 using Examples.Domain.Workflows;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Examples
 {
@@ -11,17 +12,21 @@ namespace Examples
     private static void Main(string[] args)
     {
       UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
-      PublishGradesCommand command = new(listOfGrades);
+      PublishExamCommand command = new(listOfGrades);
       PublishGradeWorkflow workflow = new();
-      ExamGradesPublishedEvent.IExamGradesPublishedEvent result = workflow.Execute(command, (registrationNumber) => true);
+      ExamPublishedEvent.IExamPublishedEvent result = workflow.Execute(command, CheckStudentExists);
 
       string message = result switch
       {
-        ExamGradesPublishedEvent.ExamGradesPublishFailedEvent @event => $"Publish failed: {@event.Reason}",
-        ExamGradesPublishedEvent.ExamGradesPublishSucceededEvent @event => @event.Csv,
+        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
+        ExamPublishedEvent.ExamPublishSucceededEvent @event => @event.Csv,
         _ => throw new NotImplementedException()
       };
 
+      Console.WriteLine();
+      Console.WriteLine("============================");
+      Console.WriteLine("Catalog Note:");
+      Console.WriteLine("============================");
       Console.WriteLine(message);
     }
 
@@ -59,5 +64,10 @@ namespace Examples
       Console.Write(prompt);
       return Console.ReadLine();
     }
+
+    private static bool CheckStudentExists(StudentRegistrationNumber registrationNumber) =>
+      existingStudents.Contains(registrationNumber.Value);
+
+    private static readonly IEnumerable<string> existingStudents = ["LM12345", "LM54321", "LM67890", "LM98765"];
   }
 }

@@ -28,7 +28,7 @@ namespace Examples.Domain.Models
       return Value;
     }
 
-    public static bool TryParse(string stringValue, out StudentRegistrationNumber registrationNumber)
+    public static bool TryParse(string stringValue, out StudentRegistrationNumber? registrationNumber)
     {
       bool isValid = false;
       registrationNumber = null;

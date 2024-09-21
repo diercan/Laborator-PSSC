@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Examples.Domain.Models
 {
-  public static partial class ExamGrades
+  public static class Exam
   {
-    public interface IExamGrades { }
+    public interface IExam { }
 
-    public record UnvalidatedExamGrades : IExamGrades
+    public record UnvalidatedExam : IExam
     {
-      public UnvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> gradeList)
+      public UnvalidatedExam(IReadOnlyCollection<UnvalidatedStudentGrade> gradeList)
       {
         GradeList = gradeList;
       }
@@ -17,21 +17,21 @@ namespace Examples.Domain.Models
       public IReadOnlyCollection<UnvalidatedStudentGrade> GradeList { get; }
     }
 
-    public record InvalidatedExamGrades : IExamGrades
+    public record InvalidExam : IExam
     {
-      internal InvalidatedExamGrades(IReadOnlyCollection<UnvalidatedStudentGrade> gradeList, string reason)
+      internal InvalidExam(IReadOnlyCollection<UnvalidatedStudentGrade> gradeList, IEnumerable<string> reasons)
       {
         GradeList = gradeList;
-        Reason = reason;
+        Reasons = reasons;
       }
 
       public IReadOnlyCollection<UnvalidatedStudentGrade> GradeList { get; }
-      public string Reason { get; }
+      public IEnumerable<string> Reasons { get; }
     }
 
-    public record ValidatedExamGrades : IExamGrades
+    public record ValidatedExam : IExam
     {
-      internal ValidatedExamGrades(IReadOnlyCollection<ValidatedStudentGrade> gradesList)
+      internal ValidatedExam(IReadOnlyCollection<ValidatedStudentGrade> gradesList)
       {
         GradeList = gradesList;
       }
@@ -39,9 +39,9 @@ namespace Examples.Domain.Models
       public IReadOnlyCollection<ValidatedStudentGrade> GradeList { get; }
     }
 
-    public record CalculatedExamGrades : IExamGrades
+    public record CalculatedExam : IExam
     {
-      internal CalculatedExamGrades(IReadOnlyCollection<CalculatedStudentGrade> gradesList)
+      internal CalculatedExam(IReadOnlyCollection<CalculatedStudentGrade> gradesList)
       {
         GradeList = gradesList;
       }
@@ -49,9 +49,9 @@ namespace Examples.Domain.Models
       public IReadOnlyCollection<CalculatedStudentGrade> GradeList { get; }
     }
 
-    public record PublishedExamGrades : IExamGrades
+    public record PublishedExam : IExam
     {
-      internal PublishedExamGrades(IReadOnlyCollection<CalculatedStudentGrade> gradesList, string csv, DateTime publishedDate)
+      internal PublishedExam(IReadOnlyCollection<CalculatedStudentGrade> gradesList, string csv, DateTime publishedDate)
       {
         GradeList = gradesList;
         PublishedDate = publishedDate;
