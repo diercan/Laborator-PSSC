@@ -5,27 +5,26 @@ using System.Text;
 
 namespace Example.Dto.Events
 {
-    public record GradesPublishedEvent
+  public record GradesPublishedEvent
+  {
+    public List<StudentGradeDto> Grades { get; init; }
+
+    public override string ToString()
     {
-        public List<StudentGradeDto> Grades { get; init; }
+      StringBuilder stringBuilder = new();
+      Console.WriteLine();
+      Console.WriteLine("-----Published grades-------");
 
-        public override string ToString()
-        {
-            var stringBuilder = new StringBuilder();
-            Console.WriteLine();
-            Console.WriteLine("-----Published grades-------");
+      foreach (StudentGradeDto grade in Grades)
+      {
+        stringBuilder.AppendLine($"Student Registration Number: {grade.StudentRegistrationNumber}");
+        stringBuilder.AppendLine($"Activity Grade: {grade.ActivityGrade}");
+        stringBuilder.AppendLine($"Exam Grade: {grade.ExamGrade}");
+        stringBuilder.AppendLine($"Final Grade: {grade.FinalGrade}");
+        stringBuilder.AppendLine();
+      }
 
-            foreach (var grade in Grades)
-            {                
-                stringBuilder.AppendLine($"Name: {grade.Name}");
-                stringBuilder.AppendLine($"Student Registration Number: {grade.StudentRegistrationNumber}");
-                stringBuilder.AppendLine($"Activity Grade: {grade.ActivityGrade}");
-                stringBuilder.AppendLine($"Exam Grade: {grade.ExamGrade}");
-                stringBuilder.AppendLine($"Final Grade: {grade.FinalGrade}");
-                stringBuilder.AppendLine();
-            }
-
-            return stringBuilder.ToString();
-        }
+      return stringBuilder.ToString();
     }
+  }
 }

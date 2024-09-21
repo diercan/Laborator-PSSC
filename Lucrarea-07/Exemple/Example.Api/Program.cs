@@ -1,66 +1,66 @@
 using Example.Data;
 using Example.Data.Repositories;
 using Example.Events;
-using Exemple.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Example.Events.ServiceBus;
+using Examples.Domain.Repositories;
+using Examples.Domain.Workflows;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.OpenApi.Models;
-using Exemple.Domain.Workflows;
 
 namespace Example.Api
 {
-    public class Program
+  public class Program
+  {
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+      WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddDbContext<GradesContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-                options.EnableSensitiveDataLogging();
-            });
+      // Add services to the container.
 
-            builder.Services.AddTransient<IGradesRepository, GradesRepository>();
-            builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
-            builder.Services.AddTransient<PublishGradeWorkflow>();
-            builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
-            
-            builder.Services.AddAzureClients(client =>
-            {
-                client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
-            });
+      builder.Services.AddDbContext<GradesContext>
+          (options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+      builder.Services.AddTransient<IGradesRepository, GradesRepository>();
+      builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
+      builder.Services.AddTransient<PublishExamWorkflow>();
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
+      builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
 
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
-            });
+      builder.Services.AddAzureClients(client =>
+      {
+        client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+      });
+
+      builder.Services.AddHttpClient();
+
+      builder.Services.AddControllers();
+
+      // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+      builder.Services.AddEndpointsApiExplorer();
+      builder.Services.AddSwaggerGen(c =>
+      {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
+      });
 
 
-            var app = builder.Build();
+      WebApplication app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Example.Api v1"));
-            }
+      // Configure the HTTP request pipeline.
+      if (app.Environment.IsDevelopment())
+      {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+      }
 
-            app.UseHttpsRedirection();
+      app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+      app.UseAuthorization();
 
-            app.MapControllers();
 
-            app.Run();
-        }
+      app.MapControllers();
+
+      app.Run();
     }
+  }
 }

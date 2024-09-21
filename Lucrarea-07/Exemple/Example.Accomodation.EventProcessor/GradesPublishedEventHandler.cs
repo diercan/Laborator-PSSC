@@ -2,16 +2,16 @@
 using Example.Events;
 using Example.Events.Models;
 
-namespace Example.Accomodation.EventProcessor
+namespace Example.Accommodation.EventProcessor
 {
-    internal class GradesPublishedEventHandler : AbstractEventHandler<GradesPublishedEvent>
-    {
-        public override string[] EventTypes => new string[]{typeof(GradesPublishedEvent).Name};
+  internal class GradesPublishedEventHandler : AbstractEventHandler<GradesPublishedEvent>
+  {
+    public override string[] EventTypes => new string[] { typeof(GradesPublishedEvent).Name };
 
-        protected override Task<EventProcessingResult> OnHandleAsync(GradesPublishedEvent eventData)
-        {
-            Console.WriteLine(eventData.ToString());
-            return Task.FromResult(EventProcessingResult.Completed);
-        }
+    protected override Task<EventProcessingResult> OnHandleAsync(GradesPublishedEvent eventData)
+    {
+      Console.WriteLine(eventData.ToString());
+      return Task.FromResult(EventProcessingResult.Completed);
     }
+  }
 }

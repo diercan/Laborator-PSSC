@@ -1,9 +1,9 @@
-﻿using LanguageExt;
+﻿using System.Threading.Tasks;
 
 namespace Example.Events
 {
-    public interface IEventSender
-    {
-        TryAsync<Unit> SendAsync<T>(string topicName, T @event);
-    }
+  public interface IEventSender
+  {
+    Task SendAsync<T>(string topicName, T @event);
+  }
 }
