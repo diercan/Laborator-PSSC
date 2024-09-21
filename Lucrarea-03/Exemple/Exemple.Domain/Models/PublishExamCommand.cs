@@ -1,7 +1,6 @@
-﻿using Examples.Domain.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Examples.Domain.Commands
+namespace Examples.Domain.Models
 {
   public record PublishExamCommand
   {

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Examples.Domain.Exceptions
 {
-  [Serializable]
-  internal class InvalidStudentRegistrationNumberException : Exception
+  public class InvalidStudentRegistrationNumberException : Exception
   {
     public InvalidStudentRegistrationNumberException()
     {
@@ -15,10 +13,6 @@ namespace Examples.Domain.Exceptions
     }
 
     public InvalidStudentRegistrationNumberException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-
-    protected InvalidStudentRegistrationNumberException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
   }

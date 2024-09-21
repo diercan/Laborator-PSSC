@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static Examples.Domain.WorkflowEvents.ExamGradesPublishedEvent;
+using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Examples
 {
@@ -31,16 +31,21 @@ namespace Examples
       UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
 
       //execute domain workflow
-      PublishGradesCommand command = new(listOfGrades);
+      PublishExamCommand command = new(listOfGrades);
       PublishGradeWorkflow workflow = new(studentsRepository, gradesRepository, logger);
-      IExamGradesPublishedEvent result = await workflow.ExecuteAsync(command);
+      IExamPublishedEvent result = await workflow.ExecuteAsync(command);
 
       string consoleMessage = result switch
       {
-        ExamGradesPublishSucceededEvent @event => @event.Csv,
-        ExamGradesPublishFailedEvent @event => $"Publish failed: {@event.Reason}",
+        ExamPublishSucceededEvent @event => @event.Csv,
+        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
         _ => throw new NotImplementedException()
       };
+
+      Console.WriteLine();
+      Console.WriteLine("============================");
+      Console.WriteLine("Catalog Note:");
+      Console.WriteLine("============================");
 
       Console.WriteLine(consoleMessage);
     }

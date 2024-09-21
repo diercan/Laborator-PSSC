@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<InternalsVisibleTo Include="Examples.Data" />
+	  <InternalsVisibleTo Include="Examples.Data" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
   </ItemGroup>
 

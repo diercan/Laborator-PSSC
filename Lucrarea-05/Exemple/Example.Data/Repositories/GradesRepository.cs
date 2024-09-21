@@ -1,11 +1,11 @@
 ﻿using Example.Data.Models;
 using Examples.Domain.Models;
-using Exemple.Domain.Repositories;
+using Examples.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static Examples.Domain.Models.ExamGrades;
+using static Examples.Domain.Models.Exam;
 
 namespace Example.Data.Repositories
 {
@@ -43,17 +43,18 @@ namespace Example.Data.Repositories
       return foundGradesModel;
     }
 
-    public async Task SaveGradesAsync(PublishedExamGrades grades)
+    public async Task SaveGradesAsync(PublishedExam exam)
     {
-      ILookup<string, StudentDto> students = (await dbContext.Students.ToListAsync()).ToLookup(student => student.RegistrationNumber);
-      AddNewGrades(grades, students);
-      UpdateExistingGrades(grades, students);
+      ILookup<string, StudentDto> students = (await dbContext.Students.ToListAsync())
+        .ToLookup(student => student.RegistrationNumber);
+      AddNewGrades(exam, students);
+      UpdateExistingGrades(exam, students);
       await dbContext.SaveChangesAsync();
     }
 
-    private void UpdateExistingGrades(PublishedExamGrades grades, ILookup<string, StudentDto> students)
+    private void UpdateExistingGrades(PublishedExam exam, ILookup<string, StudentDto> students)
     {
-      IEnumerable<GradeDto> updatedGrades = grades.GradeList.Where(g => g.IsUpdated && g.GradeId > 0)
+      IEnumerable<GradeDto> updatedGrades = exam.GradeList.Where(g => g.IsUpdated && g.GradeId > 0)
         .Select(g => new GradeDto()
         {
           GradeId = g.GradeId,
@@ -69,9 +70,9 @@ namespace Example.Data.Repositories
       }
     }
 
-    private void AddNewGrades(PublishedExamGrades grades, ILookup<string, StudentDto> students)
+    private void AddNewGrades(PublishedExam exam, ILookup<string, StudentDto> students)
     {
-      IEnumerable<GradeDto> newGrades = grades.GradeList
+      IEnumerable<GradeDto> newGrades = exam.GradeList
         .Where(g => !g.IsUpdated && g.GradeId == 0)
         .Select(g => new GradeDto()
         {

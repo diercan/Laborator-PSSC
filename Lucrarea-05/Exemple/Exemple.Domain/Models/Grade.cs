@@ -5,7 +5,13 @@ namespace Examples.Domain.Models
 {
   public record Grade
   {
+
     public decimal Value { get; }
+
+    private Grade()
+    {
+      Value = 0;
+    }
 
     public Grade(decimal value)
     {
@@ -28,12 +34,9 @@ namespace Examples.Domain.Models
       return new Grade(roundedValue);
     }
 
-    public override string ToString()
-    {
-      return $"{Value:0.##}";
-    }
+    public override string ToString() => $"{Value:0.##}";
 
-    public static bool TryParseGrade(string gradeString, out Grade grade)
+    public static bool TryParseGrade(string? gradeString, out Grade? grade)
     {
       bool isValid = false;
       grade = null;

@@ -2,9 +2,9 @@
 
 namespace Examples.Domain.Models
 {
-  public record PublishGradesCommand
+  public record PublishExamCommand
   {
-    public PublishGradesCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
+    public PublishExamCommand(IReadOnlyCollection<UnvalidatedStudentGrade> inputExamGrades)
     {
       InputExamGrades = inputExamGrades;
     }

@@ -1,5 +1,4 @@
-﻿using Examples.Domain.Commands;
-using Examples.Domain.Models;
+﻿using Examples.Domain.Models;
 using Examples.Domain.Workflows;
 using System;
 using System.Collections.Generic;
@@ -18,8 +17,8 @@ namespace Examples
 
       string message = result switch
       {
-        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
         ExamPublishedEvent.ExamPublishSucceededEvent @event => @event.Csv,
+        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
         _ => throw new NotImplementedException()
       };
 

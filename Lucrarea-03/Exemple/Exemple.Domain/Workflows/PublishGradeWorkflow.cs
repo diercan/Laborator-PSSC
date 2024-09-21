@@ -1,5 +1,4 @@
-﻿using Examples.Domain.Commands;
-using Examples.Domain.Models;
+﻿using Examples.Domain.Models;
 using Examples.Domain.Operations;
 using System;
 using static Examples.Domain.Models.Exam;
