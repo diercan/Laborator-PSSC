@@ -59,9 +59,9 @@ namespace Example.Data.Repositories
         {
           GradeId = g.GradeId,
           StudentId = students[g.StudentRegistrationNumber.Value].Single().StudentId,
-          Exam = g.ExamGrade.Value,
-          Activity = g.ActivityGrade.Value,
-          Final = g.FinalGrade.Value,
+          Exam = g.ExamGrade?.Value,
+          Activity = g.ActivityGrade?.Value,
+          Final = g.FinalGrade?.Value,
         });
 
       foreach (GradeDto entity in updatedGrades)
@@ -77,9 +77,9 @@ namespace Example.Data.Repositories
         .Select(g => new GradeDto()
         {
           StudentId = students[g.StudentRegistrationNumber.Value].Single().StudentId,
-          Exam = g.ExamGrade.Value,
-          Activity = g.ActivityGrade.Value,
-          Final = g.FinalGrade.Value,
+          Exam = g.ExamGrade?.Value,
+          Activity = g.ActivityGrade?.Value,
+          Final = g.FinalGrade?.Value,
         });
       dbContext.AddRange(newGrades);
     }
