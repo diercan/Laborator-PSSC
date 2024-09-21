@@ -1,56 +1,56 @@
 using Example.Data;
 using Example.Data.Repositories;
-using Exemple.Domain.Repositories;
-using Exemple.Domain.Workflows;
+using Examples.Domain.Repositories;
+using Examples.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 namespace Example.Api
 {
-    public class Program
+  public class Program
+  {
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
-            
-            // Add services to the container.
+      WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<GradesContext>
-                (options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+      // Add services to the container.
 
-            builder.Services.AddTransient<IGradesRepository, GradesRepository>();
-            builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
-            builder.Services.AddTransient<PublishGradeWorkflow>();
+      builder.Services.AddDbContext<GradesContext>
+          (options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddHttpClient();
+      builder.Services.AddTransient<IGradesRepository, GradesRepository>();
+      builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
+      builder.Services.AddTransient<PublishExamWorkflow>();
 
-            builder.Services.AddControllers();
+      builder.Services.AddHttpClient();
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
-            });
+      builder.Services.AddControllers();
+
+      // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+      builder.Services.AddEndpointsApiExplorer();
+      builder.Services.AddSwaggerGen(c =>
+      {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
+      });
 
 
-            var app = builder.Build();
+      WebApplication app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+      // Configure the HTTP request pipeline.
+      if (app.Environment.IsDevelopment())
+      {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+      }
 
-            app.UseHttpsRedirection();
+      app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+      app.UseAuthorization();
 
 
-            app.MapControllers();
+      app.MapControllers();
 
-            app.Run();
-        }
+      app.Run();
     }
+  }
 }

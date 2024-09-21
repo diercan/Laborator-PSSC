@@ -11,9 +11,9 @@ Analizați și rulați soluția din directorul exemple. Identificați elementele
 **Sarcina 2**
 
 În contextul workflow-ului pentru plasarea unei comenzi realizați următoarele:
-* implementare endpoint pentru a vizualiza căruciorul de cumărături
+* implementare endpoint pentru a vizualiza coșul de cumărături
 * implementați endpoint adăugare produs în coșul de cumpărături
-* implementare endpoint marcare cărucior de cumpărături plătit
+* implementare endpoint marcare coș de cumpărături plătit
 
 **Referințe**
 

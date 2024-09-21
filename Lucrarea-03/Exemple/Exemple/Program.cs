@@ -3,6 +3,7 @@ using Examples.Domain.Workflows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Examples
 {
@@ -13,12 +14,12 @@ namespace Examples
       UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
       PublishExamCommand command = new(listOfGrades);
       PublishExamWorkflow workflow = new();
-      ExamPublishedEvent.IExamPublishedEvent result = workflow.Execute(command, CheckStudentExists);
+      IExamPublishedEvent result = workflow.Execute(command, CheckStudentExists);
 
       string message = result switch
       {
-        ExamPublishedEvent.ExamPublishSucceededEvent @event => @event.Csv,
-        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
+        ExamPublishSucceededEvent @event => @event.Csv,
+        ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
         _ => throw new NotImplementedException()
       };
 

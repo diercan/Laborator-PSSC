@@ -1,11 +1,11 @@
-﻿using Exemple.Domain.Models;
-using LanguageExt;
+﻿using Examples.Domain.Models;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Exemple.Domain.Repositories
+namespace Examples.Domain.Repositories
 {
-    public interface IStudentsRepository
-    {
-        TryAsync<List<StudentRegistrationNumber>> TryGetExistingStudents(IEnumerable<string> studentsToCheck);
-    }
+  public interface IStudentsRepository
+  {
+    Task<List<StudentRegistrationNumber>> GetExistingStudentsAsync(IEnumerable<string> studentsToCheck);
+  }
 }
