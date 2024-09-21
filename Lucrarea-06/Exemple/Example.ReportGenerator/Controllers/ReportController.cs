@@ -1,5 +1,5 @@
+using Examples.ReportGenerator.Models;
 using Microsoft.AspNetCore.Mvc;
-using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Example.ReportGenerator.Controllers
 {
@@ -15,14 +15,14 @@ namespace Example.ReportGenerator.Controllers
     }
 
     [HttpPost("semester-report")]
-    public IActionResult GenerateReport([FromBody] ExamPublishSucceededEvent examPublished)
+    public IActionResult GenerateReport([FromBody] ExamPublishedModel examPublished)
     {
       _logger.LogInformation($"Landed on GenerateReport Action {examPublished.Csv}");
       return Ok("Report generated successfully");
     }
 
     [HttpPost("scholarship")]
-    public IActionResult ScholarshipCalculation([FromBody] ExamPublishSucceededEvent examPublished)
+    public IActionResult ScholarshipCalculation([FromBody] ExamPublishedModel examPublished)
     {
       _logger.LogInformation($"Landed on ScholarshipCalculation Action {examPublished.Csv}");
 

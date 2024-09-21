@@ -61,13 +61,13 @@ namespace Example.Api.Controllers
 
     private async Task<IActionResult> PublishEvent(ExamPublishSucceededEvent successEvent)
     {
-      Task<bool> w1 = SendEventToService(successEvent, "https://localhost:7286/report/semester-report");
-      Task<bool> w2 = SendEventToService(successEvent, "https://localhost:7286/report/scholarship");
+      Task w1 = SendEventToService(successEvent, "https://localhost:7286/report/semester-report");
+      Task w2 = SendEventToService(successEvent, "https://localhost:7286/report/scholarship");
       await Task.WhenAll(w1, w2);
       return Ok();
     }
 
-    private async Task<Boolean> SendEventToService(ExamPublishSucceededEvent successEvent, string serviceUrl)
+    private async Task SendEventToService(ExamPublishSucceededEvent successEvent, string serviceUrl)
     {
       HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, serviceUrl)
       {
@@ -75,7 +75,7 @@ namespace Example.Api.Controllers
       };
       HttpClient client = _httpClientFactory.CreateClient();
       HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-      return true;
+      response.EnsureSuccessStatusCode();
     }
 
     private static UnvalidatedStudentGrade MapInputGradeToUnvalidatedGrade(InputGrade grade) => new(

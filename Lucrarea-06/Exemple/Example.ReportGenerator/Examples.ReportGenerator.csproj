@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Exemple.Domain\Examples.Domain.csproj" />
   </ItemGroup>
 
