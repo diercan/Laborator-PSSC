@@ -6,7 +6,7 @@ using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Examples.Domain.Workflows
 {
-  public class PublishGradeWorkflow
+  public class PublishExamWorkflow
   {
     public IExamPublishedEvent Execute(PublishExamCommand command, Func<StudentRegistrationNumber, bool> checkStudentExists)
     {

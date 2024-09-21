@@ -12,7 +12,7 @@ namespace Examples
     {
       UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
       PublishExamCommand command = new(listOfGrades);
-      PublishGradeWorkflow workflow = new();
+      PublishExamWorkflow workflow = new();
       ExamPublishedEvent.IExamPublishedEvent result = workflow.Execute(command, CheckStudentExists);
 
       string message = result switch

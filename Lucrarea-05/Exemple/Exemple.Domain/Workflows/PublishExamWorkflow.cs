@@ -11,13 +11,13 @@ using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Examples.Domain.Workflows
 {
-  public class PublishGradeWorkflow
+  public class PublishExamWorkflow
   {
     private readonly IStudentsRepository studentsRepository;
     private readonly IGradesRepository gradesRepository;
-    private readonly ILogger<PublishGradeWorkflow> logger;
+    private readonly ILogger<PublishExamWorkflow> logger;
 
-    public PublishGradeWorkflow(IStudentsRepository studentsRepository, IGradesRepository gradesRepository, ILogger<PublishGradeWorkflow> logger)
+    public PublishExamWorkflow(IStudentsRepository studentsRepository, IGradesRepository gradesRepository, ILogger<PublishExamWorkflow> logger)
     {
       this.studentsRepository = studentsRepository;
       this.gradesRepository = gradesRepository;

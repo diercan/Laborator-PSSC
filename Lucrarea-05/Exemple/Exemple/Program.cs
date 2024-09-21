@@ -19,7 +19,7 @@ namespace Examples
     {
       //setup dependencies, e.g., logger and repositories
       using ILoggerFactory loggerFactory = ConfigureLoggerFactory();
-      ILogger<PublishGradeWorkflow> logger = loggerFactory.CreateLogger<PublishGradeWorkflow>();
+      ILogger<PublishExamWorkflow> logger = loggerFactory.CreateLogger<PublishExamWorkflow>();
       DbContextOptionsBuilder<GradesContext> dbContextBuilder = new DbContextOptionsBuilder<GradesContext>()
                                                 .UseSqlServer(ConnectionString)
                                                 .UseLoggerFactory(loggerFactory);
@@ -32,7 +32,7 @@ namespace Examples
 
       //execute domain workflow
       PublishExamCommand command = new(listOfGrades);
-      PublishGradeWorkflow workflow = new(studentsRepository, gradesRepository, logger);
+      PublishExamWorkflow workflow = new(studentsRepository, gradesRepository, logger);
       IExamPublishedEvent result = await workflow.ExecuteAsync(command);
 
       string consoleMessage = result switch
