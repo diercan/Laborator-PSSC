@@ -32,9 +32,9 @@ namespace Example.Data.Repositories
       List<CalculatedStudentGrade> foundGradesModel = foundStudentGrades.Select(result =>
         new CalculatedStudentGrade(
           StudentRegistrationNumber: new StudentRegistrationNumber(result.RegistrationNumber),
-          ExamGrade: new Grade(result.Exam ?? 0m),
-          ActivityGrade: new Grade(result.Activity ?? 0m),
-          FinalGrade: new Grade(result.Final ?? 0m))
+          ExamGrade: result.Exam is null ? null : new Grade(result.Exam.Value),
+          ActivityGrade: result.Activity is null ? null : new Grade(result.Activity.Value),
+          FinalGrade: result.Final is null ? null : new Grade(result.Final.Value))
         {
           GradeId = result.GradeId
         })
