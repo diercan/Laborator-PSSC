@@ -20,9 +20,24 @@ namespace Example.Data
         .ToTable("Student")
         .HasKey(s => s.StudentId);
       modelBuilder
-        .Entity<GradeDto>()
-        .ToTable("Grade")
-        .HasKey(s => s.GradeId);
+        .Entity<GradeDto>(entityBuilder =>
+        {
+          entityBuilder
+            .Property(g => g.Activity)
+            .HasColumnType("decimal(4, 2)");
+
+          entityBuilder
+            .Property(g => g.Exam)
+            .HasColumnType("decimal(4, 2)");
+
+          entityBuilder
+            .Property(g => g.Final)
+            .HasColumnType("decimal(4, 2)");
+
+          entityBuilder
+            .ToTable("Grade")
+            .HasKey(s => s.GradeId);
+        });
     }
   }
 }

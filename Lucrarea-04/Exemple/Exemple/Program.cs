@@ -2,6 +2,7 @@
 using Example.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,11 @@ namespace Examples
 
       //list
       List<StudentDto> allStudents = await gradesContext.Students.ToListAsync();
+
+      Console.WriteLine();
+      Console.WriteLine("============================");
+      Console.WriteLine("All students:");
+      Console.WriteLine("============================");
       allStudents.ForEach(s => System.Console.WriteLine($"{s.RegistrationNumber} {s.Name}"));
     }
     private static ILoggerFactory ConfigureLoggerFactory()
