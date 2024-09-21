@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Domain", "Exemple.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Data", "Example.Data\Examples.Data.csproj", "{72B14A42-5EEE-472D-A4B5-80F45FDB9656}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ReportGenerator", "Example.ReportGenerator\Examples.ReportGenerator.csproj", "{29DE777C-CE1C-45DB-B098-9F76BF150FC7}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Api", "Example.Api\Examples.Api.csproj", "{74C7C00F-D67D-4473-9303-CA5C8E11ED76}"
 EndProject
 Global
@@ -23,6 +25,10 @@ Global
 		{72B14A42-5EEE-472D-A4B5-80F45FDB9656}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72B14A42-5EEE-472D-A4B5-80F45FDB9656}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72B14A42-5EEE-472D-A4B5-80F45FDB9656}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29DE777C-CE1C-45DB-B098-9F76BF150FC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74C7C00F-D67D-4473-9303-CA5C8E11ED76}.Release|Any CPU.ActiveCfg = Release|Any CPU

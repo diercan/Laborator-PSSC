@@ -1,8 +1,11 @@
 using Example.Data;
 using Example.Data.Repositories;
+using Example.Events;
+using Example.Events.ServiceBus;
 using Examples.Domain.Repositories;
 using Examples.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.OpenApi.Models;
 
 namespace Example.Api
@@ -21,6 +24,13 @@ namespace Example.Api
       builder.Services.AddTransient<IGradesRepository, GradesRepository>();
       builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
       builder.Services.AddTransient<PublishExamWorkflow>();
+
+      builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
+
+      builder.Services.AddAzureClients(client =>
+      {
+        client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+      });
 
       builder.Services.AddHttpClient();
 

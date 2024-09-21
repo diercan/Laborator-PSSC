@@ -12,11 +12,13 @@ namespace Examples.Domain.Models
     {
       public string Csv { get; }
       public DateTime PublishedDate { get; }
+      public IEnumerable<CalculatedStudentGrade> Grades { get; }
 
-      internal ExamPublishSucceededEvent(string csv, DateTime publishedDate)
+      internal ExamPublishSucceededEvent(string csv, IEnumerable<CalculatedStudentGrade> grades, DateTime publishedDate)
       {
         Csv = csv;
         PublishedDate = publishedDate;
+        Grades = grades;
       }
     }
 
@@ -42,7 +44,7 @@ namespace Examples.Domain.Models
         ValidatedExam validatedGrades => new ExamPublishFailedEvent("Unexpected validated state"),
         CalculatedExam calculatedGrades => new ExamPublishFailedEvent("Unexpected calculated state"),
         InvalidExam invalidGrades => new ExamPublishFailedEvent(invalidGrades.Reasons),
-        PublishedExam publishedGrades => new ExamPublishSucceededEvent(publishedGrades.Csv, publishedGrades.PublishedDate),
+        PublishedExam publishedGrades => new ExamPublishSucceededEvent(publishedGrades.Csv, publishedGrades.GradeList, publishedGrades.PublishedDate),
         _ => throw new NotImplementedException()
       };
   }

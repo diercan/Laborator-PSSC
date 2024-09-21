@@ -1,12 +1,11 @@
 using Example.Api.Models;
-using Example.Dto.Events;
-using Example.Dto.Models;
-using Example.Events;
 using Examples.Domain.Models;
 using Examples.Domain.Repositories;
 using Examples.Domain.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
+using System.Text;
+using System.Text.Json;
 using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Example.Api.Controllers
@@ -17,16 +16,13 @@ namespace Example.Api.Controllers
   {
     private readonly ILogger<GradesController> logger;
     private readonly PublishExamWorkflow publishGradeWorkflow;
-    private readonly IEventSender eventSender;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public GradesController(
-      ILogger<GradesController> logger,
-      PublishExamWorkflow publishGradeWorkflow,
-      IEventSender eventSender)
+    public GradesController(ILogger<GradesController> logger, PublishExamWorkflow publishGradeWorkflow, IHttpClientFactory httpClientFactory)
     {
       this.logger = logger;
       this.publishGradeWorkflow = publishGradeWorkflow;
-      this.eventSender = eventSender;
+      _httpClientFactory = httpClientFactory;
     }
 
     [HttpGet("getAllGrades")]
@@ -65,18 +61,21 @@ namespace Example.Api.Controllers
 
     private async Task<IActionResult> PublishEvent(ExamPublishSucceededEvent successEvent)
     {
-      await eventSender.SendAsync("grades", new GradesPublishedEvent()
-      {
-        Grades = successEvent.Grades.Select(grade => new StudentGradeDto
-        {
-          StudentRegistrationNumber = grade.StudentRegistrationNumber.Value,
-          ActivityGrade = grade.ActivityGrade?.Value,
-          ExamGrade = grade.ExamGrade?.Value,
-          FinalGrade = grade.FinalGrade?.Value
-        }).ToList()
-      });
-
+      Task w1 = SendEventToService(successEvent, "https://localhost:7286/report/semester-report");
+      Task w2 = SendEventToService(successEvent, "https://localhost:7286/report/scholarship");
+      await Task.WhenAll(w1, w2);
       return Ok();
+    }
+
+    private async Task SendEventToService(ExamPublishSucceededEvent successEvent, string serviceUrl)
+    {
+      HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, serviceUrl)
+      {
+        Content = new StringContent(JsonSerializer.Serialize(successEvent), Encoding.UTF8, "application/json")
+      };
+      HttpClient client = _httpClientFactory.CreateClient();
+      HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+      response.EnsureSuccessStatusCode();
     }
 
     private static UnvalidatedStudentGrade MapInputGradeToUnvalidatedGrade(InputGrade grade) => new(
