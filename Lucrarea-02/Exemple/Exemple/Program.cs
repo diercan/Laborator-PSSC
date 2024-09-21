@@ -1,7 +1,7 @@
 ﻿using Examples.Domain.Models;
 using System;
 using System.Collections.Generic;
-using static Examples.Domain.Models.ExamGrades;
+using static Examples.Domain.Models.Exam;
 
 namespace Examples
 {
@@ -15,21 +15,21 @@ namespace Examples
       UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
 
       //map user input to unvalidated grades
-      UnvalidatedExamGrades unvalidatedGrades = new(listOfGrades);
+      UnvalidatedExam unvalidatedGrades = new(listOfGrades);
 
       //validate grades
-      IExamGrades result = ValidateExamGrades(unvalidatedGrades);
+      IExam result = ValidateExamGrades(unvalidatedGrades);
 
 
-      IExamGrades finalResult = result switch
+      IExam finalResult = result switch
       {
-        InvalidatedExamGrades invalidResult => HandleInvalidGrades(invalidResult),
-        ValidatedExamGrades validatedResult => PublishExamGrades(validatedResult),
+        InvalidatedExam invalidResult => HandleInvalidGrades(invalidResult),
+        ValidatedExam validatedResult => PublishExamGrades(validatedResult),
 
         // we should never reach this case, as the result should always be one validated or invalidated
-        PublishedExamGrades publishedResult => throw new InvalidOperationException("Invalid state"),
+        PublishedExam publishedResult => throw new InvalidOperationException("Invalid state"),
         // we should never reach this case, as the result should always be one validated or invalidated
-        UnvalidatedExamGrades unvalidatedResult => throw new InvalidOperationException("Invalid state"),
+        UnvalidatedExam unvalidatedResult => throw new InvalidOperationException("Invalid state"),
         //this is a catch all case, if the switch expression does not match any of the previous cases
         _ => throw new InvalidOperationException("Invalid state")
       };
@@ -60,21 +60,21 @@ namespace Examples
     }
 
     //simulate grades validation by returning a random result
-    private static IExamGrades ValidateExamGrades(UnvalidatedExamGrades unvalidatedGrades) =>
+    private static IExam ValidateExamGrades(UnvalidatedExam unvalidatedGrades) =>
         random.Next(100) > 50 ?
-        new InvalidatedExamGrades(new List<UnvalidatedStudentGrade>(), "Random error")
-        : new ValidatedExamGrades(new List<ValidatedStudentGrade>());
+        new InvalidatedExam(new List<UnvalidatedStudentGrade>(), "Random error")
+        : new ValidatedExam(new List<ValidatedStudentGrade>());
 
-    private static IExamGrades HandleInvalidGrades(InvalidatedExamGrades invalidExamGrades)
+    private static IExam HandleInvalidGrades(InvalidatedExam invalidExamGrades)
     {
       Console.WriteLine($"Grades could not be published: {invalidExamGrades.Reason}");
       return invalidExamGrades;
     }
 
-    private static IExamGrades PublishExamGrades(ValidatedExamGrades validExamGrades)
+    private static IExam PublishExamGrades(ValidatedExam validExamGrades)
     {
       Console.WriteLine("Grades published successfully");
-      return new PublishedExamGrades([], DateTime.Now);
+      return new PublishedExam([], DateTime.Now);
     }
 
     private static string? ReadValue(string prompt)

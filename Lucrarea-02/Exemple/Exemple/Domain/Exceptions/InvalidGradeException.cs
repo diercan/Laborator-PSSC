@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Examples.Domain.Exceptions
 {
-  [Serializable]
   internal class InvalidGradeException : Exception
   {
     public InvalidGradeException()
@@ -15,10 +13,6 @@ namespace Examples.Domain.Exceptions
     }
 
     public InvalidGradeException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-
-    protected InvalidGradeException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
   }
