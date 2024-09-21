@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+  </ItemGroup>
+
+   <ItemGroup>
+	 <ProjectReference Include="..\Example.Data\Examples.Data.csproj" />
+	 <ProjectReference Include="..\Exemple.Domain\Examples.Domain.csproj" />
+   </ItemGroup>
+
+</Project>

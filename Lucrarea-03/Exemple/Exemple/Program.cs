@@ -1,69 +1,73 @@
-﻿using Exemple.Domain.Models;
+﻿using Examples.Domain.Models;
+using Examples.Domain.Workflows;
 using System;
 using System.Collections.Generic;
-using static Exemple.Domain.Models.ExamGrades;
-using Exemple.Domain.Workflows;
-using Exemple.Domain.Commands;
+using System.Linq;
+using static Examples.Domain.Models.ExamPublishedEvent;
 
-namespace Exemple
+namespace Examples
 {
-    class Program
+  internal class Program
+  {
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var listOfGrades = ReadListOfGrades().ToArray();
-            PublishGradesCommand command = new(listOfGrades);
-            PublishGradeWorkflow workflow = new PublishGradeWorkflow();
-            var result = workflow.Execute(command, (registrationNumber) => true);
+      UnvalidatedStudentGrade[] listOfGrades = ReadListOfGrades().ToArray();
+      PublishExamCommand command = new(listOfGrades);
+      PublishExamWorkflow workflow = new();
+      IExamPublishedEvent result = workflow.Execute(command, CheckStudentExists);
 
-            result.Match(
-                    whenExamGradesPublishFaildEvent: @event =>
-                    {
-                        Console.WriteLine($"Publish failed: {@event.Reason}");
-                        return @event;
-                    },
-                    whenExamGradesPublishScucceededEvent: @event =>
-                    {
-                        Console.WriteLine($"Publish succeeded.");
-                        Console.WriteLine(@event.Csv);
-                        return @event;
-                    }
-                );
-        }
+      string message = result switch
+      {
+        ExamPublishSucceededEvent @event => @event.Csv,
+        ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
+        _ => throw new NotImplementedException()
+      };
 
-        private static List<UnvalidatedStudentGrade> ReadListOfGrades()
-        {
-            List <UnvalidatedStudentGrade> listOfGrades = new();
-            do
-            {
-                //read registration number and grade and create a list of greads
-                var registrationNumber = ReadValue("Registration Number: ");
-                if (string.IsNullOrEmpty(registrationNumber))
-                {
-                    break;
-                }
-
-                var examGrade = ReadValue("Exam Grade: ");
-                if (string.IsNullOrEmpty(examGrade))
-                {
-                    break;
-                }
-
-                var activityGrade = ReadValue("Activity Grade: ");
-                if (string.IsNullOrEmpty(activityGrade))
-                {
-                    break;
-                }
-
-                listOfGrades.Add(new (registrationNumber, examGrade, activityGrade));
-            } while (true);
-            return listOfGrades;
-        }
-
-        private static string? ReadValue(string prompt)
-        {
-            Console.Write(prompt);
-            return Console.ReadLine();
-        }
+      Console.WriteLine();
+      Console.WriteLine("============================");
+      Console.WriteLine("Catalog Note:");
+      Console.WriteLine("============================");
+      Console.WriteLine(message);
     }
+
+    private static List<UnvalidatedStudentGrade> ReadListOfGrades()
+    {
+      List<UnvalidatedStudentGrade> listOfGrades = [];
+      do
+      {
+        //read registration number and grade and create a list of greads
+        string? registrationNumber = ReadValue("Registration Number: ");
+        if (string.IsNullOrEmpty(registrationNumber))
+        {
+          break;
+        }
+
+        string? examGrade = ReadValue("Exam Grade: ");
+        if (string.IsNullOrEmpty(examGrade))
+        {
+          break;
+        }
+
+        string? activityGrade = ReadValue("Activity Grade: ");
+        if (string.IsNullOrEmpty(activityGrade))
+        {
+          break;
+        }
+
+        listOfGrades.Add(new(registrationNumber, examGrade, activityGrade));
+      } while (true);
+      return listOfGrades;
+    }
+
+    private static string? ReadValue(string prompt)
+    {
+      Console.Write(prompt);
+      return Console.ReadLine();
+    }
+
+    private static bool CheckStudentExists(StudentRegistrationNumber registrationNumber) =>
+      existingStudents.Contains(registrationNumber.Value);
+
+    private static readonly IEnumerable<string> existingStudents = ["LM12345", "LM54321", "LM67890", "LM98765"];
+  }
 }

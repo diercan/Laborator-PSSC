@@ -1,62 +1,86 @@
-﻿using Exemple.Domain.Repositories;
-using Microsoft.AspNetCore.Mvc;
 using Example.Api.Models;
-using Exemple.Domain.Models;
-using Exemple.Domain.Workflows;
-using Exemple.Domain.Commands;
+using Examples.Domain.Models;
+using Examples.Domain.Repositories;
+using Examples.Domain.Workflows;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
+using System.Text;
+using System.Text.Json;
+using static Examples.Domain.Models.ExamPublishedEvent;
 
 namespace Example.Api.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class GradesController : ControllerBase
+  [ApiController]
+  [Route("[controller]")]
+  public class GradesController : ControllerBase
+  {
+    private readonly ILogger<GradesController> logger;
+    private readonly PublishExamWorkflow publishGradeWorkflow;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public GradesController(ILogger<GradesController> logger, PublishExamWorkflow publishGradeWorkflow, IHttpClientFactory httpClientFactory)
     {
-        private ILogger<GradesController> logger;
-
-        public GradesController(ILogger<GradesController> logger)
-        {
-            this.logger = logger;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllGrades([FromServices] IGradesRepository gradesRepository) =>
-            await gradesRepository.TryGetExistingGrades().Match(
-               Succ: GetAllGradesHandleSuccess,
-               Fail: GetAllGradesHandleError
-            );
-
-        private ObjectResult GetAllGradesHandleError(Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-            return base.StatusCode(StatusCodes.Status500InternalServerError, "UnexpectedError");
-        }
-
-        private OkObjectResult GetAllGradesHandleSuccess(List<Exemple.Domain.Models.CalculatedSudentGrade> grades) =>
-        Ok(grades.Select(grade => new
-        {
-            StudentRegistrationNumber = grade.StudentRegistrationNumber.Value,
-            grade.ExamGrade,
-            grade.ActivityGrade,
-            grade.FinalGrade
-        }));
-
-        [HttpPost]
-        public async Task<IActionResult> PublishGrades([FromServices]PublishGradeWorkflow publishGradeWorkflow, [FromBody]InputGrade[] grades)
-        {
-            var unvalidatedGrades = grades.Select(MapInputGradeToUnvalidatedGrade)
-                                          .ToList()
-                                          .AsReadOnly();
-            PublishGradesCommand command = new(unvalidatedGrades);
-            var result = await publishGradeWorkflow.ExecuteAsync(command);
-            return result.Match<IActionResult>(
-                whenExamGradesPublishFaildEvent: failedEvent => StatusCode(StatusCodes.Status500InternalServerError, failedEvent.Reason),
-                whenExamGradesPublishScucceededEvent: successEvent => Ok()
-            );
-        }
-
-        private static UnvalidatedStudentGrade MapInputGradeToUnvalidatedGrade(InputGrade grade) => new UnvalidatedStudentGrade(
-            StudentRegistrationNumber: grade.RegistrationNumber,
-            ExamGrade: grade.Exam,
-            ActivityGrade: grade.Activity);
+      this.logger = logger;
+      this.publishGradeWorkflow = publishGradeWorkflow;
+      _httpClientFactory = httpClientFactory;
     }
+
+    [HttpGet("getAllGrades")]
+    public async Task<IActionResult> GetAllGrades([FromServices] IGradesRepository gradesRepository)
+    {
+      List<CalculatedStudentGrade> grades = await gradesRepository.GetExistingGradesAsync();
+      var result = grades.Select(grade => new
+      {
+        StudentRegistrationNumber = grade.StudentRegistrationNumber.Value,
+        ExamGrade = grade.ExamGrade?.Value,
+        ActivityGrade = grade.ActivityGrade?.Value,
+        FinalGrade = grade.FinalGrade?.Value
+      });
+      return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PublishGrades([FromBody] InputGrade[] grades)
+    {
+      ReadOnlyCollection<UnvalidatedStudentGrade> unvalidatedGrades = grades
+        .Select(MapInputGradeToUnvalidatedGrade)
+        .ToList()
+        .AsReadOnly();
+      PublishExamCommand command = new(unvalidatedGrades);
+      IExamPublishedEvent workflowResult = await publishGradeWorkflow.ExecuteAsync(command);
+
+      IActionResult response = workflowResult switch
+      {
+        ExamPublishSucceededEvent @event => await PublishEvent(@event),
+        ExamPublishFailedEvent @event => BadRequest(@event.Reasons),
+        _ => throw new NotImplementedException()
+      };
+
+      return response;
+    }
+
+    private async Task<IActionResult> PublishEvent(ExamPublishSucceededEvent successEvent)
+    {
+      Task w1 = SendEventToService(successEvent, "https://localhost:7286/report/semester-report");
+      Task w2 = SendEventToService(successEvent, "https://localhost:7286/report/scholarship");
+      await Task.WhenAll(w1, w2);
+      return Ok();
+    }
+
+    private async Task SendEventToService(ExamPublishSucceededEvent successEvent, string serviceUrl)
+    {
+      HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, serviceUrl)
+      {
+        Content = new StringContent(JsonSerializer.Serialize(successEvent), Encoding.UTF8, "application/json")
+      };
+      HttpClient client = _httpClientFactory.CreateClient();
+      HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+      response.EnsureSuccessStatusCode();
+    }
+
+    private static UnvalidatedStudentGrade MapInputGradeToUnvalidatedGrade(InputGrade grade) => new(
+        StudentRegistrationNumber: grade.RegistrationNumber,
+        ExamGrade: grade.Exam,
+        ActivityGrade: grade.Activity);
+  }
 }

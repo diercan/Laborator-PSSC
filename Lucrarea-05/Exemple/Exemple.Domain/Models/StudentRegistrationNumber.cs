@@ -1,44 +1,45 @@
-﻿using LanguageExt;
-using static LanguageExt.Prelude;
+﻿using Examples.Domain.Exceptions;
 using System.Text.RegularExpressions;
 
-namespace Exemple.Domain.Models
+namespace Examples.Domain.Models
 {
-    public record StudentRegistrationNumber
+  public record StudentRegistrationNumber
+  {
+    private static readonly Regex ValidPattern = new("^LM[0-9]{5}$");
+
+    public string Value { get; }
+
+    internal StudentRegistrationNumber(string value)
     {
-        private static readonly Regex ValidPattern = new("^LM[0-9]{5}$");
-
-        public string Value { get; }
-
-        internal StudentRegistrationNumber(string value)
-        {
-            if (IsValid(value))
-            {
-                Value = value;
-            }
-            else
-            {
-                throw new InvalidStudentRegistrationNumberException("");
-            }
-        }
-
-        private static bool IsValid(string stringValue) => ValidPattern.IsMatch(stringValue);
-
-        public override string ToString()
-        {
-            return Value;
-        }
-
-        public static Option<StudentRegistrationNumber> TryParse(string stringValue)
-        {
-            if (IsValid(stringValue))
-            {
-                return Some<StudentRegistrationNumber>(new StudentRegistrationNumber(stringValue));
-            }
-            else
-            {
-                return None;
-            }
-        }
+      if (IsValid(value))
+      {
+        Value = value;
+      }
+      else
+      {
+        throw new InvalidStudentRegistrationNumberException("");
+      }
     }
+
+    private static bool IsValid(string stringValue) => ValidPattern.IsMatch(stringValue);
+
+    public override string ToString()
+    {
+      return Value;
+    }
+
+    public static bool TryParse(string stringValue, out StudentRegistrationNumber? registrationNumber)
+    {
+      bool isValid = false;
+      registrationNumber = null;
+
+      if (IsValid(stringValue))
+      {
+        isValid = true;
+        registrationNumber = new(stringValue);
+      }
+
+      return isValid;
+    }
+  }
 }
