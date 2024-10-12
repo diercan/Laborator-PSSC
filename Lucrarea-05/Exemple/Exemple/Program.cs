@@ -38,7 +38,7 @@ namespace Examples
       string consoleMessage = result switch
       {
         ExamPublishSucceededEvent @event => @event.Csv,
-        ExamPublishedEvent.ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
+        ExamPublishFailedEvent @event => $"Publish failed: \r\n{string.Join("\r\n", @event.Reasons)}",
         _ => throw new NotImplementedException()
       };
 

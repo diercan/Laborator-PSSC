@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Examples.Domain.Models
 {
-  public static partial class Exam
+  public static class Exam
   {
     public interface IExam { }
 

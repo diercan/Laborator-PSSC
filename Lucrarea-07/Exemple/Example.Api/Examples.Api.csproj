@@ -9,10 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.6" />
   </ItemGroup>
 
    <ItemGroup>
 	 <ProjectReference Include="..\Example.Data\Examples.Data.csproj" />
+	 <ProjectReference Include="..\Example.ReportGenerator\Examples.ReportGenerator.csproj" />
 	 <ProjectReference Include="..\Exemple.Domain\Examples.Domain.csproj" />
    </ItemGroup>
 

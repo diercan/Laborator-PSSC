@@ -1,9 +1,12 @@
 using Example.Data;
 using Example.Data.Repositories;
+using Examples.Api.Clients;
 using Examples.Domain.Repositories;
 using Examples.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Example.Api
 {
@@ -22,7 +25,14 @@ namespace Example.Api
       builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
       builder.Services.AddTransient<PublishExamWorkflow>();
 
-      builder.Services.AddHttpClient();
+      builder.Services.AddHttpClient<ReportApiClient>()
+        .ConfigureHttpClient(client =>
+        {
+          client.BaseAddress = new Uri("https://localhost:7286");
+        })
+        .AddPolicyHandler(HttpPolicyExtensions
+          .HandleTransientHttpError()
+          .WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(600)));
 
       builder.Services.AddControllers();
 

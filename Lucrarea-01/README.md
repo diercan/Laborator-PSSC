@@ -75,6 +75,34 @@ In the above example, the switch expression matches the value of the variable pa
 
 This allows you to easily include variable names in the switch expression cases and provide more meaningful output based on the variable value. This concise syntax makes it easy to handle different types in a clean and readable way.
 
+### Lambda Functions in C#
+
+Lambda functions, also known as anonymous functions, are a powerful feature in C# that allow you to define and use functions without explicitly declaring a separate method. They provide a concise and flexible way to write code, especially when working with delegates or functional programming concepts.
+
+The syntax for a lambda function in C# is as follows:
+
+```csharp
+(parameters) => expression
+```
+
+Here, `parameters` represents the input parameters of the function, and `expression` represents the code to be executed. The lambda function can have zero or more parameters, and the expression can be a single statement or a block of statements enclosed in curly braces.
+
+Lambda functions are commonly used in scenarios where you need to pass a function as an argument to another method or define a short and simple function inline. They are particularly useful when working with LINQ queries, event handlers, and functional programming constructs like `Func` and `Action` delegates.
+
+For example, consider the following code snippet that uses a lambda function to filter a list of numbers:
+
+```csharp
+List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+
+List<int> evenNumbers = numbers.Where(x => x % 2 == 0).ToList();
+```
+
+In this example, the lambda function `x => x % 2 == 0` is used as a predicate to filter out the even numbers from the `numbers` list. The resulting `evenNumbers` list will contain only the even numbers `[2, 4]`.
+
+Lambda functions can also capture variables from their surrounding scope, making them useful for creating closures. This allows you to access and modify variables outside the lambda function's body.
+
+In summary, lambda functions in C# provide a concise and flexible way to define and use functions without explicitly declaring separate methods. They are commonly used in scenarios where you need to pass functions as arguments or define short and simple functions inline. Lambda functions are a powerful tool in C# that can greatly enhance your code readability and maintainability.
+
 ## Referințe
 
 [1] https://www.jetbrains.com/rider/
