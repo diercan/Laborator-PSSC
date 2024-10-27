@@ -25,15 +25,15 @@ namespace Example.Data
         {
           entityBuilder
             .Property(g => g.Activity)
-            .HasColumnType("decimal(4, 2)");
+            .HasColumnType("decimal(18, 0)");
 
           entityBuilder
             .Property(g => g.Exam)
-            .HasColumnType("decimal(4, 2)");
+            .HasColumnType("decimal(18, 0)");
 
           entityBuilder
             .Property(g => g.Final)
-            .HasColumnType("decimal(4, 2)");
+            .HasColumnType("decimal(18, 0)");
 
           entityBuilder
             .ToTable("Grade")
