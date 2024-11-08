@@ -1,4 +1,4 @@
-# Lucrarea 6: Comunicare asincronă
+# Lucrarea 8: Comunicare asincronă
 
 **Obiective**: comunicarea între două procese folosind pub-sub
 
