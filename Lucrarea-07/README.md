@@ -1,8 +1,8 @@
-# Lucrarea 5: Comunicare sincrona
+# Lucrarea 7: Comunicare sincrona
 
 **Context**: Coșul de cumpărături pentru un magazin virtual. 
 
-**Obiective**: aplearea unui API
+**Obiective**: implementarea si apelarea unui API
 
 **Sarcina 1**
 
