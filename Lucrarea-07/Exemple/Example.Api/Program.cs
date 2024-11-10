@@ -1,6 +1,7 @@
 using Example.Data;
 using Example.Data.Repositories;
 using Examples.Api.Clients;
+using Examples.Api.Filters;
 using Examples.Domain.Repositories;
 using Examples.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,7 @@ namespace Example.Api
       builder.Services.AddSwaggerGen(c =>
       {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
+        c.DocumentFilter<ExcludeControllersDocumentFilter>();
       });
 
 
