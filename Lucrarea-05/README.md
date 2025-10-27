@@ -11,7 +11,11 @@ Analizați și rulați soluția din directorul exemple. Identificați elementele
 **Sarcina 2**
 
 În contextul workflow-ului pentru plasarea unei comenzi realizați următoarele:
-* creați o baza de date cu următoarele tabele: Product(ProductId, Code, Stoc), OrderHeader(OrderId, Address, Total), OrderLine(OrderLineId, ProductId, Quantity, Price)
+* creați o nouă bază de date SQL care va conține următoarele tabele: 
+    - Products (Id, Code, Name, Price, QuantityType), 
+    - Customers(Id, Code, Name), 
+    - Order(Id, Date, DeliveryAddress, CustomerId), 
+    - OrderItem(Id, OrderId, ProductId, Quantity)
 * înainte de a executa workflow-ul încărcați starea din baza de date
 * implementați funcțiile de verificare a existenței produsului și stocului astfel încât să folosească informații din baza de date
 * după executare workflow-ului salvați rezultatul în baza de date
