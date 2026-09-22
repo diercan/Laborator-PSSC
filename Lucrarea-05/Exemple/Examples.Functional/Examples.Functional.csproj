@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nucleu funcțional minimal (Result, Option) folosit de modelul de domeniu din laboratoarele PSSC.</Description>
+  </PropertyGroup>
+
+</Project>
