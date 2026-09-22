@@ -1,13 +1,13 @@
 [
   {
-    "Name": "New Profile",
+    "Name": "Api + EventProcessor",
     "Projects": [
       {
-        "Path": "Example.Api\\Examples.Api.csproj",
+        "Path": "Examples.Api\\Examples.Api.csproj",
         "Action": "Start"
       },
       {
-        "Path": "Example.Accomodation.EventProcessor\\Example.Accommodation.EventProcessor.csproj",
+        "Path": "Examples.Accommodation.EventProcessor\\Examples.Accommodation.EventProcessor.csproj",
         "Action": "Start"
       }
     ]

@@ -1,20 +1,7 @@
-using Examples.Domain.Models;
-using System.ComponentModel.DataAnnotations;
+namespace Examples.Api.Models;
 
-namespace Example.Api.Models
-{
-  public class InputGrade
-  {
-    [Required]
-    [RegularExpression(StudentRegistrationNumber.Pattern)]
-    public string RegistrationNumber { get; set; } = string.Empty;
-
-    [Required]
-    [Range(1, 10)]
-    public decimal Exam { get; set; }
-
-    [Required]
-    [Range(1, 10)]
-    public decimal Activity { get; set; }
-  }
-}
+/// <summary>
+/// Forma JSON a unei note de intrare. Contract "prost" în mod intenționat: nu repetă regulile domeniului
+/// (interval, format număr matricol) — domeniul este locul unde acestea trăiesc și unde se raportează erorile.
+/// </summary>
+public sealed record InputGrade(string? RegistrationNumber, decimal? Exam, decimal? Activity);

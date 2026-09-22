@@ -1,66 +1,50 @@
-using Example.Data;
-using Example.Data.Repositories;
-using Example.Events;
-using Example.Events.ServiceBus;
-using Examples.Domain.Repositories;
+using Examples.Api.Endpoints;
+using Examples.Api.Messaging;
+using Examples.Api.OpenApi;
+using Examples.Data;
 using Examples.Domain.Workflows;
-using Microsoft.EntityFrameworkCore;
+using Examples.Events.ServiceBus;
 using Microsoft.Extensions.Azure;
-using Microsoft.OpenApi.Models;
 
-namespace Example.Api
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddGradesData(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Lipsește ConnectionStrings:DefaultConnection (appsettings.json sau dotnet user-secrets)."));
+
+builder.Services.AddScoped<PublishExamWorkflow>();
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services
+    .AddOptions<MessagingOptions>()
+    .Bind(builder.Configuration.GetSection(MessagingOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddAzureClients(azure => azure.AddServiceBusClient(
+    builder.Configuration.GetConnectionString("ServiceBus")
+    ?? throw new InvalidOperationException(
+        "Lipsește ConnectionStrings:ServiceBus. Porniți emulatorul (docker compose up) sau setați dotnet user-secrets ori variabila ConnectionStrings__ServiceBus.")));
+builder.Services.AddServiceBusEventSender(builder.Configuration);
+
+builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.RespectNullableAnnotations = true);
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ExamplesApiDocumentTransformer>());
+
+WebApplication app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
 {
-  public class Program
-  {
-    public static void Main(string[] args)
-    {
-      WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
-      // Add services to the container.
-
-      builder.Services.AddDbContext<GradesContext>
-          (options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-      builder.Services.AddTransient<IGradesRepository, GradesRepository>();
-      builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
-      builder.Services.AddTransient<PublishExamWorkflow>();
-
-      builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
-
-      builder.Services.AddAzureClients(client =>
-      {
-        client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
-      });
-
-      builder.Services.AddHttpClient();
-
-      builder.Services.AddControllers();
-
-      // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-      builder.Services.AddEndpointsApiExplorer();
-      builder.Services.AddSwaggerGen(c =>
-      {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Example.Api", Version = "v1" });
-      });
-
-
-      WebApplication app = builder.Build();
-
-      // Configure the HTTP request pipeline.
-      if (app.Environment.IsDevelopment())
-      {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-      }
-
-      app.UseHttpsRedirection();
-
-      app.UseAuthorization();
-
-
-      app.MapControllers();
-
-      app.Run();
-    }
-  }
+    app.MapOpenApi();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Examples.Api v1"));
 }
+
+app.MapGrades();
+
+app.Run();

@@ -1,27 +1,30 @@
-﻿using Example.Events;
+using Examples.Events;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace Example.Accommodation.EventProcessor
+namespace Examples.Accommodation.EventProcessor;
+
+/// <summary>Pornește ascultătorul de evenimente la startul aplicației și îl oprește elegant la închidere.</summary>
+internal sealed partial class Worker(
+    IEventListener listener, IOptions<EventProcessorOptions> options, ILogger<Worker> logger) : BackgroundService
 {
-  internal class Worker : IHostedService
-  {
-    private readonly IEventListener eventListener;
-
-    public Worker(IEventListener eventListener)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-      this.eventListener = eventListener;
+        EventProcessorOptions o = options.Value;
+        await listener.StartAsync(new TopicName(o.TopicName), new SubscriptionName(o.SubscriptionName), stoppingToken);
+        LogListening(logger, o.TopicName, o.SubscriptionName);
+
+        // Ascultătorul e bazat pe evenimente (push), deci nu mai e nimic de făcut aici decât să aștepte oprirea.
+        await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ContinueWith(_ => { }, TaskScheduler.Default);
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public override async Task StopAsync(CancellationToken cancellationToken)
     {
-      Console.WriteLine("Worker started...");
-      return eventListener.StartAsync("grades", "accommodation", cancellationToken);
+        await listener.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-      Console.WriteLine("Worker stopped!");
-      return eventListener.StopAsync(cancellationToken);
-    }
-  }
+    [LoggerMessage(Level = LogLevel.Information, Message = "Listening on topic {Topic}, subscription {Subscription}")]
+    private static partial void LogListening(ILogger logger, string topic, string subscription);
 }
