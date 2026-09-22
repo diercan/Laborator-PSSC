@@ -3030,7 +3030,8 @@ LabDDD/
 ├── docs/
 │   ├── EventStorming.md
 │   ├── BoundedContexts.md
-│   └── DesignDecisions.md
+│   └── adr/
+│       └── 0001-<decizie>.md
 └── README.md
 ```
 

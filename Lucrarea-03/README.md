@@ -123,6 +123,10 @@ It's important to note that the `Aggregate` method throws an exception if the co
 
 In summary, the `Aggregate` method in LINQ provides a powerful way to perform iterative calculations or aggregations on a collection of elements. By specifying a seed value and an aggregation function, you can accumulate a result as you iterate through the elements. It's a versatile tool that can be used for various types of aggregations and calculations in your code.
 
+## Decizii de arhitectură
+
+Alegerile de proiectare ale acestui laborator – operații pure definite pe starea pe care o transformă, compunerea lor pe model „railway”, evenimente doar pe ramura de succes, teste pe nucleul pur – sunt documentate în [ADR-0002](docs/adr/0002-operatii-pure-compuse-in-workflow.md), care continuă [ADR-0001](../Lucrarea-02/docs/adr/0001-sistem-de-tipuri-inchis-cu-erori-ca-valori.md) din Lucrarea 2.
+
 ## Referințe
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018 — cap. 7, 9-10 (compunerea operațiilor și tratarea erorilor)

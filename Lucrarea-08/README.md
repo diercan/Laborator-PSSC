@@ -44,6 +44,10 @@ Adăugați în [infra/servicebus/Config.json](../infra/servicebus/Config.json) o
 * **Rutare după tipul evenimentului**: fiecare eveniment de integrare (`IIntegrationEvent`) își declară propriul `EventType` (un șir stabil, versionat, de exemplu `"pssc.grades.published.v1"`), folosit pentru rutare — nu numele clasei C#, care s-ar putea schimba fără să anunțe consumatorii.
 * **Salvarea în bază urmată de trimiterea evenimentului nu este o singură tranzacție**: dacă aplicația se oprește exact între cele două, evenimentul se pierde. Soluția completă (un *outbox* tranzacțional) depășește scopul acestui laborator — e menționată aici ca următor pas posibil.
 
+## Decizii de arhitectură
+
+Alegerile de proiectare ale acestui laborator – abstracțiile de mesagerie independente de transport, CloudEvents peste Azure Service Bus, politica de mesaje moarte, worker-ul `BackgroundService`, absența outbox-ului – sunt documentate în [ADR-0006](docs/adr/0006-evenimente-de-integrare-prin-service-bus-si-cloudevents.md), care continuă [ADR-0004](../Lucrarea-06/docs/adr/0004-api-minimal-cu-rezultate-tipizate.md) din Lucrarea 6; alternativa sincronă este [ADR-0005](../Lucrarea-07/docs/adr/0005-contracte-partajate-si-client-http-rezilient.md).
+
 ## Referințe
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/), Pragmatic Bookshelf, 2018 — cap. 3 (comunicarea între contexte delimitate), cap. 11

@@ -67,5 +67,5 @@ dotnet test
 [Prompt 1 care a generat cod bun]
 ```
 
-## Design Decisions
-[Link la docs/DesignDecisions.md pentru detalii]
+## Decizii de arhitectură
+[Link la docs/adr/ – câte un ADR (Architecture Decision Record) pentru fiecare decizie importantă: context, opțiuni considerate, decizie, consecințe. Folosiți ca model ADR-urile laboratoarelor, de exemplu [ADR-0002](../Lucrarea-03/docs/adr/0002-operatii-pure-compuse-in-workflow.md)]

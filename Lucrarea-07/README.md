@@ -103,6 +103,10 @@ Pentru a configura un HttpClient tipizat, urmați pașii de mai jos:
 
 Intervalul de timp dintre reîncercări crește exponențial (600 ms, 1,2 s, 2,4 s, cu jitter — la fel ca în exemplu), nu doar constant.
 
+## Decizii de arhitectură
+
+Alegerile de proiectare ale acestui laborator – contractele partajate într-o bibliotecă separată, clientul HTTP tipizat cu reziliență, propagarea eșecului dependenței – sunt documentate în [ADR-0005](docs/adr/0005-contracte-partajate-si-client-http-rezilient.md), care continuă [ADR-0004](../Lucrarea-06/docs/adr/0004-api-minimal-cu-rezultate-tipizate.md) din Lucrarea 6.
+
 ## Referințe
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/), Pragmatic Bookshelf, 2018 — cap. 3 (comunicarea între contexte delimitate), cap. 11 (DTO-uri la graniță)

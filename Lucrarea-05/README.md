@@ -21,6 +21,10 @@ Creați baza de date cu [SQL/create-db.sql](SQL/create-db.sql), fie pe un SQL Se
 * implementați funcțiile de verificare a existenței produsului și stocului astfel încât să folosească informații din baza de date
 * după executare workflow-ului salvați rezultatul în baza de date
 
+**Decizii de arhitectură**
+
+Alegerile de proiectare ale acestui laborator – abordarea SQL-first, porturile și repository-urile, upsert-ul după numărul matricol, modelul de citire separat – sunt documentate în [ADR-0003](docs/adr/0003-persistenta-sql-first-la-marginile-workflow-ului.md), care continuă [ADR-0002](../Lucrarea-03/docs/adr/0002-operatii-pure-compuse-in-workflow.md) din Lucrarea 3.
+
 **Referințe**
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018 — cap. 12 (persistență la marginile sistemului)

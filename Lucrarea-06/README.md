@@ -23,6 +23,10 @@ dotnet run --project Exemple/Examples.Api
 
 Deschideți `https://localhost:7195/swagger`.
 
+**Decizii de arhitectură**
+
+Alegerile de proiectare ale acestui laborator – API minimal cu rezultate tipizate, maparea `Result` la 200/400, documentul OpenAPI generat nativ, validarea doar în domeniu – sunt documentate în [ADR-0004](docs/adr/0004-api-minimal-cu-rezultate-tipizate.md), care continuă [ADR-0003](../Lucrarea-05/docs/adr/0003-persistenta-sql-first-la-marginile-workflow-ului.md) din Lucrarea 5.
+
 **Referințe**
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018 — cap. 11 (DTO-uri la graniță)

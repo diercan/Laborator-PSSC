@@ -58,6 +58,10 @@ Entity types play a crucial role in DDD as they enable the modeling of complex b
 
 În exemplele acestui laborator, entitatea (examenul) este reprezentată prin stări imutabile: o tranziție de stare creează o instanță nouă, nu modifică una existentă.
 
+## Decizii de arhitectură
+
+Alegerile de proiectare ale acestui laborator – sistemul de tipuri închis, `Result` în loc de excepții, absența stării `Invalid` – împreună cu alternativele respinse și consecințele lor sunt documentate în [ADR-0001](docs/adr/0001-sistem-de-tipuri-inchis-cu-erori-ca-valori.md), primul din lanțul de ADR-uri al laboratoarelor cu cod.
+
 ## Referințe
 
 [1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018  
