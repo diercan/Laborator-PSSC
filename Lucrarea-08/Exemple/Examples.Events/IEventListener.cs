@@ -1,13 +1,13 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+namespace Examples.Events;
 
-namespace Example.Events
+/// <summary>
+/// Ascultă mesajele unei subscripții și le predă handler-ului potrivit. <see cref="StartAsync"/> trebuie să
+/// fie idempotent (a doua chemare nu pornește un al doilea ascultător), iar implementarea trebuie eliberată
+/// prin <see cref="IAsyncDisposable"/>.
+/// </summary>
+public interface IEventListener : IAsyncDisposable
 {
-    public interface IEventListener
-    { 
+    Task StartAsync(TopicName topic, SubscriptionName subscription, CancellationToken cancellationToken);
 
-        Task StartAsync(string topicName, string subscriptionName, CancellationToken cancellationToken);
-
-        Task StopAsync(CancellationToken cancellationToken);
-    }
+    Task StopAsync(CancellationToken cancellationToken);
 }

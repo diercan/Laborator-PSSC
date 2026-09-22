@@ -1,17 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <Nullable>enable</Nullable>
+    <Description>Persistarea notelor cu EF Core, pe schema din SQL/create-db.sql (abordare SQL-first).</Description>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Exemple.Domain\Examples.Domain.csproj" />
+    <ProjectReference Include="..\Examples.Domain\Examples.Domain.csproj" />
   </ItemGroup>
 
 </Project>

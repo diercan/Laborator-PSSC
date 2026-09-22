@@ -1,29 +1,32 @@
-﻿using Examples.Domain.Models;
 using Examples.Domain.Repositories;
+using Examples.Domain.ValueObjects;
+using Examples.Functional;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Example.Data.Repositories
+namespace Examples.Data.Repositories;
+
+/// <inheritdoc cref="IStudentsRepository"/>
+public sealed class StudentsRepository(GradesContext db) : IStudentsRepository
 {
-  public class StudentsRepository : IStudentsRepository
-  {
-    private readonly GradesContext gradesContext;
-
-    public StudentsRepository(GradesContext gradesContext)
+    public async Task<IReadOnlySet<StudentRegistrationNumber>> GetExistingAsync(
+        IReadOnlyCollection<string> registrationNumbers, CancellationToken cancellationToken)
     {
-      this.gradesContext = gradesContext;
-    }
+        if (registrationNumbers.Count == 0)
+        {
+            return new HashSet<StudentRegistrationNumber>();
+        }
 
-    public async Task<List<StudentRegistrationNumber>> GetExistingStudentsAsync(IEnumerable<string> studentsToCheck)
-    {
-      List<Models.StudentDto> students = await gradesContext.Students
-              .Where(student => studentsToCheck.Contains(student.RegistrationNumber))
-              .AsNoTracking()
-              .ToListAsync();
-      return students.Select(student => new StudentRegistrationNumber(student.RegistrationNumber))
-                     .ToList();
+        List<string> found = await db.Students
+            .AsNoTracking()
+            .Where(student => registrationNumbers.Contains(student.RegistrationNumber))
+            .Select(student => student.RegistrationNumber)
+            .ToListAsync(cancellationToken);
+
+        // Baza de date proprie e de încredere: dacă un rând nu respectă formatul, e o coruptere a datelor,
+        // nu o greșeală a utilizatorului — se aruncă direct, nu se transformă într-o eroare de domeniu.
+        return found
+            .Select(raw => StudentRegistrationNumber.Create(raw)
+                .GetValueOrThrow(_ => new InvalidDataException($"Număr matricol invalid în baza de date: '{raw}'.")))
+            .ToHashSet();
     }
-  }
 }

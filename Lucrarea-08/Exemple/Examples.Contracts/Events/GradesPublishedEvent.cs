@@ -1,30 +1,13 @@
-﻿using Example.Dto.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Examples.Contracts.Models;
+using Examples.Events;
 
-namespace Example.Dto.Events
+namespace Examples.Contracts.Events;
+
+/// <summary>
+/// Evenimentul de integrare publicat de <c>Examples.Api</c> către celelalte contexte (de exemplu cazarea)
+/// după publicarea cu succes a notelor unui examen. Un contract simplu, fără logică: doar date.
+/// </summary>
+public sealed record GradesPublishedEvent(DateTimeOffset PublishedAt, IReadOnlyList<StudentGradeDto> Grades) : IIntegrationEvent
 {
-  public record GradesPublishedEvent
-  {
-    public List<StudentGradeDto> Grades { get; init; }
-
-    public override string ToString()
-    {
-      StringBuilder stringBuilder = new();
-      Console.WriteLine();
-      Console.WriteLine("-----Published grades-------");
-
-      foreach (StudentGradeDto grade in Grades)
-      {
-        stringBuilder.AppendLine($"Student Registration Number: {grade.StudentRegistrationNumber}");
-        stringBuilder.AppendLine($"Activity Grade: {grade.ActivityGrade}");
-        stringBuilder.AppendLine($"Exam Grade: {grade.ExamGrade}");
-        stringBuilder.AppendLine($"Final Grade: {grade.FinalGrade}");
-        stringBuilder.AppendLine();
-      }
-
-      return stringBuilder.ToString();
-    }
-  }
+    public static string EventType => "pssc.grades.published.v1";
 }

@@ -1,13 +1,8 @@
-﻿using System.Threading.Tasks;
-using CloudNative.CloudEvents;
-using Example.Events.Models;
+namespace Examples.Events;
 
-namespace Example.Events
+/// <summary>Tratează un eveniment de integrare de un tip anume, primit de la un ascultător.</summary>
+public interface IEventHandler<in TEvent>
+    where TEvent : IIntegrationEvent
 {
-    public interface IEventHandler
-    {
-        string[] EventTypes { get; }
-
-        Task<EventProcessingResult> HandleAsync(CloudEvent cloudEvent);
-    }
+    Task<EventProcessingResult> HandleAsync(TEvent @event, CancellationToken cancellationToken);
 }

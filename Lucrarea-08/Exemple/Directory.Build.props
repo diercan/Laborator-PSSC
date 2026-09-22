@@ -20,6 +20,8 @@
     <NoWarn>$(NoWarn);CA1716</NoWarn>
     <!-- CA1708: fals-pozitiv al analizorului pentru mai multe blocuri "extension(...)" (C# 14) în aceeași clasă statică. -->
     <NoWarn>$(NoWarn);CA1708</NoWarn>
+    <!-- CA1711: IEventHandler<T> este o interfață de gestionare a evenimentelor, nu un delegat "...EventHandler". -->
+    <NoWarn>$(NoWarn);CA1711</NoWarn>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <!-- Același identificator în toate laboratoarele: un connection string setat o singură dată per tip de host. -->

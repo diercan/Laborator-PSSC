@@ -1,60 +1,60 @@
-﻿using Azure.Messaging.ServiceBus;
-using CloudNative.CloudEvents;
-using CloudNative.CloudEvents.SystemTextJson;
-using System;
 using System.Collections.Concurrent;
 using System.Net.Mime;
-using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
+using CloudNative.CloudEvents;
+using CloudNative.CloudEvents.SystemTextJson;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace Example.Events.ServiceBus
+namespace Examples.Events.ServiceBus;
+
+/// <summary>Trimite evenimente de integrare ca mesaje CloudEvents (mod structurat, JSON) pe un topic Azure Service Bus.</summary>
+internal sealed partial class ServiceBusTopicEventSender(
+    ServiceBusClient client,
+    TimeProvider clock,
+    IOptions<ServiceBusEventsOptions> options,
+    ILogger<ServiceBusTopicEventSender> logger) : IEventSender, IAsyncDisposable
 {
-  public class ServiceBusTopicEventSender : IEventSender, IAsyncDisposable
-  {
-    private readonly ServiceBusClient client;
-    private readonly ConcurrentDictionary<string, ServiceBusSender> senders;
-    private readonly JsonEventFormatter jsonEventFormatter = new();
+    private static readonly JsonEventFormatter Formatter = new();
+    private readonly ConcurrentDictionary<TopicName, ServiceBusSender> senders = new();
 
-    public ServiceBusTopicEventSender(ServiceBusClient client)
+    public async Task SendAsync<TEvent>(TopicName topic, TEvent @event, CancellationToken cancellationToken)
+        where TEvent : IIntegrationEvent
     {
-      this.client = client;
-      senders = new ConcurrentDictionary<string, ServiceBusSender>();
-    }
+        CloudEvent cloudEvent = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Type = TEvent.EventType,
+            Source = options.Value.Source,
+            Time = clock.GetUtcNow(),
+            Subject = topic.Value,
+            DataContentType = MediaTypeNames.Application.Json,
+            Data = @event,
+        };
 
-    public async Task SendAsync<T>(string topicName, T @event)
-    {
-      ServiceBusSender sender = GetOrCreateSender(topicName);
-      CloudEvent cloudEvent = CreateCloudEvent<T>(topicName, @event);
-      ReadOnlyMemory<byte> encodedCloudEvent = jsonEventFormatter.EncodeStructuredModeMessage(cloudEvent, out ContentType? contentType);
-      ServiceBusMessage message = new(encodedCloudEvent);
+        ReadOnlyMemory<byte> body = Formatter.EncodeStructuredModeMessage(cloudEvent, out ContentType contentType);
+        ServiceBusMessage message = new(body)
+        {
+            MessageId = cloudEvent.Id,
+            ContentType = contentType.ToString(),
+            Subject = TEvent.EventType,
+        };
 
-      await sender.SendMessageAsync(message);
-    }
-
-    private ServiceBusSender GetOrCreateSender(string topicName) =>
-        senders.GetOrAdd(topicName, topic => client.CreateSender(topic));
-
-    private static CloudEvent CreateCloudEvent<T>(string topicName, T eventPayload)
-    {
-      CloudEvent cloudEvent = new()
-      {
-        Id = Guid.NewGuid().ToString(),
-        DataContentType = MediaTypeNames.Application.Json,
-        Data = eventPayload,
-        Time = DateTimeOffset.Now,
-        Type = typeof(T).Name,
-        Subject = topicName,
-        Source = new("https://www.upt.ro/")
-      };
-      return cloudEvent;
+        ServiceBusSender sender = senders.GetOrAdd(topic, t => client.CreateSender(t.Value));
+        await sender.SendMessageAsync(message, cancellationToken);
+        LogEventSent(logger, TEvent.EventType, topic.Value, cloudEvent.Id);
     }
 
     public async ValueTask DisposeAsync()
     {
-      foreach (ServiceBusSender sender in senders.Values)
-      {
-        await sender.DisposeAsync();
-      }
-      senders.Clear();
+        foreach (ServiceBusSender sender in senders.Values)
+        {
+            await sender.DisposeAsync();
+        }
+
+        senders.Clear();
     }
-  }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Event {EventType} sent to topic {Topic} (id {EventId})")]
+    private static partial void LogEventSent(ILogger logger, string eventType, string topic, string eventId);
 }

@@ -1,87 +1,44 @@
-﻿using Example.Data.Models;
-using Examples.Domain.Models;
+using Examples.Data.Entities;
 using Examples.Domain.Repositories;
+using Examples.Domain.States;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static Examples.Domain.Models.Exam;
 
-namespace Example.Data.Repositories
+namespace Examples.Data.Repositories;
+
+/// <inheritdoc cref="IGradesRepository"/>
+public sealed class GradesRepository(GradesContext db) : IGradesRepository
 {
-  public class GradesRepository : IGradesRepository
-  {
-    private readonly GradesContext dbContext;
-
-    public GradesRepository(GradesContext dbContext)
+    public async Task SaveAsync(Exam.Published exam, CancellationToken cancellationToken)
     {
-      this.dbContext = dbContext;
-    }
+        string[] registrationNumbers = [.. exam.Grades.Select(grade => grade.RegistrationNumber.Value)];
 
-    public async Task<List<CalculatedStudentGrade>> GetExistingGradesAsync()
-    {
-      //load entities from database
-      var foundStudentGrades = await (
-        from g in dbContext.Grades
-        join s in dbContext.Students on g.StudentId equals s.StudentId
-        select new { s.RegistrationNumber, g.GradeId, g.Exam, g.Activity, g.Final }
-      ).AsNoTracking()
-       .ToListAsync();
+        // O singură interogare, cu notele existente încărcate deja (Include): evită interogarea "N students,
+        // apoi N grades" din versiunea anterioară.
+        List<StudentEntity> students = await db.Students
+            .Include(student => student.Grade)
+            .Where(student => registrationNumbers.Contains(student.RegistrationNumber))
+            .ToListAsync(cancellationToken);
 
-      //map database entity to domain model
-      List<CalculatedStudentGrade> foundGradesModel = foundStudentGrades.Select(result =>
-        new CalculatedStudentGrade(
-          StudentRegistrationNumber: new StudentRegistrationNumber(result.RegistrationNumber),
-          ExamGrade: result.Exam is null ? null : new Grade(result.Exam.Value),
-          ActivityGrade: result.Activity is null ? null : new Grade(result.Activity.Value),
-          FinalGrade: result.Final is null ? null : new Grade(result.Final.Value))
+        if (students.Count != registrationNumbers.Length)
         {
-          GradeId = result.GradeId
-        })
-         .ToList();
+            // Nu ar trebui să se întâmple: workflow-ul a validat deja că toți studenții există. Dacă totuși
+            // apare (o cursă cu o ștergere concurentă), e o eroare de infrastructură, nu un eșec de validare.
+            throw new InvalidOperationException("Un student validat anterior nu mai există în baza de date.");
+        }
 
-      return foundGradesModel;
-    }
+        Dictionary<string, StudentEntity> studentsByRegistrationNumber = students.ToDictionary(s => s.RegistrationNumber);
 
-    public async Task SaveGradesAsync(PublishedExam exam)
-    {
-      ILookup<string, StudentDto> students = (await dbContext.Students.ToListAsync())
-        .ToLookup(student => student.RegistrationNumber);
-      AddNewGrades(exam, students);
-      UpdateExistingGrades(exam, students);
-      await dbContext.SaveChangesAsync();
-    }
-
-    private void UpdateExistingGrades(PublishedExam exam, ILookup<string, StudentDto> students)
-    {
-      IEnumerable<GradeDto> updatedGrades = exam.GradeList.Where(g => g.IsUpdated && g.GradeId > 0)
-        .Select(g => new GradeDto()
+        foreach (CalculatedStudentGrade grade in exam.Grades)
         {
-          GradeId = g.GradeId,
-          StudentId = students[g.StudentRegistrationNumber.Value].Single().StudentId,
-          Exam = g.ExamGrade?.Value,
-          Activity = g.ActivityGrade?.Value,
-          Final = g.FinalGrade?.Value,
-        });
+            StudentEntity student = studentsByRegistrationNumber[grade.RegistrationNumber.Value];
 
-      foreach (GradeDto entity in updatedGrades)
-      {
-        dbContext.Entry(entity).State = EntityState.Modified;
-      }
-    }
+            // Upsert după numărul matricol: un rând existent (student.Grade) se actualizează, altfel se adaugă unul nou.
+            GradeEntity row = student.Grade ?? db.Grades.Add(new GradeEntity { Student = student }).Entity;
+            row.Exam = grade.ExamGrade.Value;
+            row.Activity = grade.ActivityGrade.Value;
+            row.Final = grade.FinalGrade.Match(final => (decimal?)final.Value, () => null);
+        }
 
-    private void AddNewGrades(PublishedExam exam, ILookup<string, StudentDto> students)
-    {
-      IEnumerable<GradeDto> newGrades = exam.GradeList
-        .Where(g => !g.IsUpdated && g.GradeId == 0)
-        .Select(g => new GradeDto()
-        {
-          StudentId = students[g.StudentRegistrationNumber.Value].Single().StudentId,
-          Exam = g.ExamGrade?.Value,
-          Activity = g.ActivityGrade?.Value,
-          Final = g.FinalGrade?.Value,
-        });
-      dbContext.AddRange(newGrades);
+        await db.SaveChangesAsync(cancellationToken);
     }
-  }
 }

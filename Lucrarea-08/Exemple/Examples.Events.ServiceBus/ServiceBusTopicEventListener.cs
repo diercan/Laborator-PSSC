@@ -1,135 +1,132 @@
-﻿using Azure.Messaging.ServiceBus;
+using System.Collections.Frozen;
+using System.Net.Mime;
+using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
-using Example.Events.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Example.Events.ServiceBus
+namespace Examples.Events.ServiceBus;
+
+/// <summary>Ascultă o subscripție Azure Service Bus, decodează mesajele CloudEvents și le predă handler-ului înregistrat pentru tipul lor.</summary>
+internal sealed partial class ServiceBusTopicEventListener(
+    ServiceBusClient client,
+    IEnumerable<IEventDispatcher> dispatchers,
+    ILogger<ServiceBusTopicEventListener> logger) : IEventListener
 {
-  public class ServiceBusTopicEventListener : IEventListener
-  {
+    private static readonly JsonEventFormatter Formatter = new();
+
+    // FrozenDictionary aruncă la construcție dacă doi handleri declară același EventType — o greșeală de
+    // configurare descoperită la pornire, nu la primul mesaj primit.
+    private readonly FrozenDictionary<string, IEventDispatcher> routes =
+        dispatchers.ToFrozenDictionary(d => d.EventType, StringComparer.Ordinal);
+
+    private readonly SemaphoreSlim gate = new(1, 1);
     private ServiceBusProcessor? processor;
-    private readonly ServiceBusClient client;
-    private readonly Dictionary<string, IEventHandler> eventHandlers;
-    private readonly ILogger<ServiceBusTopicEventListener> logger;
-    private readonly JsonEventFormatter formatter = new();
 
-    public ServiceBusTopicEventListener(ServiceBusClient client, ILogger<ServiceBusTopicEventListener> logger, IEnumerable<IEventHandler> eventHandlers)
+    public async Task StartAsync(TopicName topic, SubscriptionName subscription, CancellationToken cancellationToken)
     {
-      this.client = client;
-      this.eventHandlers = eventHandlers.SelectMany(handler => handler.EventTypes
-                                                                      .Select(eventType => (eventType, handler)))
-                                                                      .ToDictionary(pair => pair.eventType, pair => pair.handler);
-      this.logger = logger;
-    }
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (processor is not null)
+            {
+                return; // deja pornit: apel idempotent
+            }
 
-    public Task StartAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
-    {
-      ServiceBusProcessorOptions options = new()
-      {
-        // By default or when AutoCompleteMessages is set to true, the processor will complete the message after executing the message handler
-        // Set AutoCompleteMessages to false to [settle messages](https://docs.microsoft.com/en-us/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock) on your own.
-        // In both cases, if the message handler throws an exception without settling the message, the processor will abandon the message.
-        AutoCompleteMessages = false,
-
-        // I can also allow for multi-threading
-        MaxConcurrentCalls = 2
-      };
-      processor = client.CreateProcessor(topicName, subscriptionName, options);
-      processor.ProcessMessageAsync += Processor_ProcessMessageAsync;
-      processor.ProcessErrorAsync += Processor_ProcessErrorAsync;
-      return processor.StartProcessingAsync(cancellationToken);
+            processor = client.CreateProcessor(topic.Value, subscription.Value, new ServiceBusProcessorOptions
+            {
+                AutoCompleteMessages = false,
+                MaxConcurrentCalls = 2,
+            });
+            processor.ProcessMessageAsync += OnMessageAsync;
+            processor.ProcessErrorAsync += OnProcessorErrorAsync;
+            await processor.StartProcessingAsync(cancellationToken);
+            LogStarted(logger, topic.Value, subscription.Value);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-      await processor!.StopProcessingAsync(cancellationToken);
-      processor.ProcessMessageAsync -= Processor_ProcessMessageAsync;
-      processor.ProcessErrorAsync -= Processor_ProcessErrorAsync;
+        if (processor is { IsProcessing: true })
+        {
+            await processor.StopProcessingAsync(cancellationToken);
+        }
     }
 
-    private Task Processor_ProcessErrorAsync(ProcessErrorEventArgs arg)
+    public async ValueTask DisposeAsync()
     {
-      logger.LogError(arg.Exception, $"{arg.ErrorSource}, {arg.FullyQualifiedNamespace}, {arg.EntityPath}");
-      return Task.CompletedTask;
+        if (processor is not null)
+        {
+            await processor.DisposeAsync();
+            processor = null;
+        }
+
+        gate.Dispose();
     }
 
-    private async Task Processor_ProcessMessageAsync(ProcessMessageEventArgs arg)
+    private async Task OnMessageAsync(ProcessMessageEventArgs args)
     {
-      if (await EnsureMaxDeliveryCountAsync(arg))
-      {
-        await ProcessMessageAsCloudEventAsync(arg);
-      }
+        ServiceBusReceivedMessage message = args.Message;
+        CancellationToken cancellationToken = args.CancellationToken;
+
+        CloudEvent cloudEvent;
+        try
+        {
+            ContentType? contentType = message.ContentType is null ? null : new ContentType(message.ContentType);
+            cloudEvent = Formatter.DecodeStructuredModeMessage(message.Body.ToStream(), contentType, extensionAttributes: null);
+        }
+        catch (Exception ex) when (ex is ArgumentException or FormatException or JsonException)
+        {
+            LogUndecodable(logger, message.MessageId, ex);
+            await args.DeadLetterMessageAsync(message, "InvalidCloudEvent", ex.Message, cancellationToken);
+            return;
+        }
+
+        if (cloudEvent.Type is null || !routes.TryGetValue(cloudEvent.Type, out IEventDispatcher? dispatcher))
+        {
+            LogNoHandler(logger, cloudEvent.Type, message.MessageId);
+            await args.DeadLetterMessageAsync(message, "NoHandler", $"No handler registered for '{cloudEvent.Type}'.", cancellationToken);
+            return;
+        }
+
+        // Nicio captare generică aici: o excepție a handler-ului trebuie să abandoneze mesajul (redistribuire),
+        // nu să-l trateze silențios ca eșec definitiv. Broker-ul îl trimite la mesaje moarte după MaxDeliveryCount.
+        EventProcessingResult result = await dispatcher.DispatchAsync((JsonElement)cloudEvent.Data!, cancellationToken);
+        await SettleAsync(args, message, result, cancellationToken);
+        LogSettled(logger, cloudEvent.Type, message.MessageId, result, message.DeliveryCount);
     }
 
-    private async Task<bool> EnsureMaxDeliveryCountAsync(ProcessMessageEventArgs arg)
+    private static Task SettleAsync(ProcessMessageEventArgs args, ServiceBusReceivedMessage message, EventProcessingResult result, CancellationToken cancellationToken) =>
+        result switch
+        {
+            EventProcessingResult.Completed => args.CompleteMessageAsync(message, cancellationToken),
+            EventProcessingResult.Retry => args.AbandonMessageAsync(message, cancellationToken: cancellationToken),
+            _ => args.DeadLetterMessageAsync(message, "HandlerFailed", "Handler returned Failed.", cancellationToken),
+        };
+
+    private Task OnProcessorErrorAsync(ProcessErrorEventArgs args)
     {
-      bool canContinue = true;
-      if (arg.Message.DeliveryCount > 5)
-      {
-        logger.LogError($"Retry count exceeded {arg.Message.MessageId}");
-        await arg.DeadLetterMessageAsync(arg.Message, "Retry count exeeded");
-        canContinue = false;
-      }
-      return canContinue;
+        LogProcessorError(logger, args.ErrorSource, args.EntityPath, args.Exception);
+        return Task.CompletedTask;
     }
 
-    private async Task ProcessMessageAsCloudEventAsync(ProcessMessageEventArgs arg)
-    {
-      BinaryData data = arg.Message.Body;
-      CloudNative.CloudEvents.CloudEvent cloudEvent = formatter.DecodeStructuredModeMessage(data.ToStream(), null, null);
-      if (eventHandlers.TryGetValue(cloudEvent.Type!, out IEventHandler? handler))
-      {
-        EventProcessingResult result = await InvokeHandlerAsync(cloudEvent, handler);
-        await InterpretResult(result, arg);
-      }
-      else
-      {
-        logger.LogError($"No handler found for {cloudEvent.Type}");
-      }
-    }
+    [LoggerMessage(Level = LogLevel.Information, Message = "Listening on topic {Topic}, subscription {Subscription}")]
+    private static partial void LogStarted(ILogger logger, string topic, string subscription);
 
-    private async Task<EventProcessingResult> InvokeHandlerAsync(CloudNative.CloudEvents.CloudEvent cloudEvent, IEventHandler handler)
-    {
-      try
-      {
-        return await handler.HandleAsync(cloudEvent);
-      }
-      catch (Exception ex)
-      {
-        //unexpected error
-        logger.LogError(ex, ex.Message);
-        return EventProcessingResult.Failed;
-      }
-    }
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Could not decode message {MessageId} as a CloudEvent")]
+    private static partial void LogUndecodable(ILogger logger, string messageId, Exception exception);
 
-    private Task InterpretResult(EventProcessingResult result, ProcessMessageEventArgs arg) => result switch
-    {
-      EventProcessingResult.Completed => HandleProcessSuccessAsync(arg),
-      EventProcessingResult.Retry => HandleProcessRetryAsync(arg),
-      _ => HandleProcessErrorAsync(arg)
-    };
+    [LoggerMessage(Level = LogLevel.Warning, Message = "No handler registered for event type {EventType} (message {MessageId})")]
+    private static partial void LogNoHandler(ILogger logger, string? eventType, string messageId);
 
-    private Task HandleProcessErrorAsync(ProcessMessageEventArgs arg)
-    {
-      logger.LogError($"Event processing has failed {arg.Message.MessageId}");
-      return arg.DeadLetterMessageAsync(arg.Message, "Processing of event has failed");
-    }
+    [LoggerMessage(Level = LogLevel.Information, Message = "Event {EventType} (message {MessageId}) settled as {Result} after {DeliveryCount} deliveries")]
+    private static partial void LogSettled(ILogger logger, string eventType, string messageId, EventProcessingResult result, int deliveryCount);
 
-    private Task HandleProcessRetryAsync(ProcessMessageEventArgs arg)
-    {
-      logger.LogWarning($"Event processing indicated retry {arg.Message.MessageId}");
-      return arg.AbandonMessageAsync(arg.Message);
-    }
-
-    private Task HandleProcessSuccessAsync(ProcessMessageEventArgs arg)
-    {
-      logger.LogInformation($"Event processing has succedded {arg.Message.MessageId}");
-      return arg.CompleteMessageAsync(arg.Message);
-    }
-  }
+    [LoggerMessage(Level = LogLevel.Error, Message = "Service Bus processor error: source={ErrorSource}, entity={EntityPath}")]
+    private static partial void LogProcessorError(ILogger logger, ServiceBusErrorSource errorSource, string entityPath, Exception exception);
 }

@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+namespace Examples.Events;
 
-namespace Example.Events
+/// <summary>Port prin care se publică un eveniment de integrare pe un topic.</summary>
+public interface IEventSender
 {
-  public interface IEventSender
-  {
-    Task SendAsync<T>(string topicName, T @event);
-  }
+    /// <summary>Trimite <paramref name="event"/> pe topicul <paramref name="topic"/>.</summary>
+    Task SendAsync<TEvent>(TopicName topic, TEvent @event, CancellationToken cancellationToken)
+        where TEvent : IIntegrationEvent;
 }
