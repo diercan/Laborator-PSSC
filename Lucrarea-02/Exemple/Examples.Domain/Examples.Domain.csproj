@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Sistemul de tipuri pentru domeniul de publicare a notelor unui examen (obiecte-valoare, stări).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examples.Functional\Examples.Functional.csproj" />
+  </ItemGroup>
+
+</Project>

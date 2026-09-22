@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Domain/">
+    <Project Path="Examples.Functional/Examples.Functional.csproj" />
+    <Project Path="Examples.Domain/Examples.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Hosts/">
+    <Project Path="Examples.ConsoleApp/Examples.ConsoleApp.csproj" />
+  </Folder>
+</Solution>
