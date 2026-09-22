@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  consistency:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifică consistența fișierelor partajate între laboratoare
+        shell: pwsh
+        run: ./tools/Check-LabConsistency.ps1 -CI
+
+  labs:
+    needs: consistency
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lab: ["02", "03", "05", "06", "07", "08"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Restore
+        run: dotnet restore "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx"
+      - name: Build (avertismentele sunt erori, vezi Directory.Build.props)
+        run: dotnet build "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" -c Release --no-restore
+      - name: Test
+        if: matrix.lab != '02'
+        run: dotnet test "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" -c Release --no-build
+      - name: Verificare formatare (dotnet format)
+        run: dotnet format "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" --verify-no-changes --no-restore
+
+  leftovers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifică resturi din refactorizare (nume vechi, net8.0, fișiere învechite)
+        run: |
+          set -e
+          PATTERN='Exemple\.Domain|Example\.(Dto|Data|Api|Events)|Sudent|Accomodation|net8\.0|Swashbuckle\.AspNetCore"|Startup\.cs|copilot_instructions_full|view=net-5\.0'
+          if git grep -nE "$PATTERN" -- . ':!Lucrarea-04/anexa.md'; then
+            echo "Au fost găsite resturi din structura veche (vezi mai sus)." >&2
+            exit 1
+          fi
+          echo "Niciun rest găsit."

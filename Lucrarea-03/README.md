@@ -6,18 +6,26 @@
 
 ## Sarcina 1
 
-Analizați și rulați soluția din directorul exemple. Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
+Analizați și rulați soluția din directorul [Exemple](Exemple/) (`Exemple/Examples.slnx`). Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
 
 ## Sarcina 2
 
-Implementați workflow-ul pentru plasarea unei comenzi și realizați o aplicații consolă care să apeleze workflow-ul creat. 
+Implementați workflow-ul pentru plasarea unei comenzi și realizați o aplicație consolă care să apeleze workflow-ul creat. 
 Workflow-ul trebuie să conțină următoarele operații:
 * validarea datelor de intrare si conversia la tipurile de date care reprezintă modelului DDD
 * verificarea existenței produsului pe baza codului de produs
 * verificarea stocului
 * verificarea adresei de livrare
 * calcularea prețului
-* workflow-ul se va finaliza cu generarea unui eveniment care va indica fie faptul că formularul de comanda este valid și comanda a fost preluată cu succes fie faptul că formularul de comanda este invalid și comanda a fost respinsă.
+* workflow-ul se încheie fie cu un eveniment de domeniu (`OrderPlacedEvent`) pe ramura de succes, fie cu o eroare de domeniu (`PlaceOrderError`) pe ramura de eșec — ambele împachetate într-un `Result`. Evenimentele descriu fapte care s-au întâmplat; erorile descriu de ce workflow-ul nu a putut produce evenimentul.
+
+## Sarcina 3 (opțional)
+
+Scrieți teste xunit pentru operația de validare: un caz valid și unul invalid. Vedeți `Exemple/Examples.Domain.Tests/` pentru stilul folosit — `dotnet test Exemple/Examples.slnx`.
+
+## Concepte noi în exemplu
+
+Operațiile domeniului (`Examples.Domain/Operations/`) sunt funcții statice pure care primesc exact starea pe care o transformă (nu o ierarhie de clase de operații). Se compun cu `Bind`/`Map` — stilul *railway-oriented programming*: pe ramura de succes execuția continuă la pasul următor, pe ramura de eroare sare direct la final.
 
 ## GitHub Copilot
 
@@ -117,6 +125,8 @@ In summary, the `Aggregate` method in LINQ provides a powerful way to perform it
 
 ## Referințe
 
-[1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018  
+[1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/ref=sr_1_1?dchild=1&keywords=Domain+Modeling+Made+Functional&qid=1632338254&sr=8-1), Pragmatic Bookshelf, 2018 — cap. 7, 9-10 (compunerea operațiilor și tratarea erorilor)
 
-[2] Microsoft Documentation, [Enumerable.Aggregate Method](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable.aggregate?view=net-5.0)
+[2] Microsoft Documentation, [Enumerable.Aggregate Method](https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.aggregate)
+
+[3] Scott Wlaschin, [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)
