@@ -1,39 +1,50 @@
-CREATE DATABASE Student;
+-- Schema pentru exemplul de publicare a notelor unui examen (Lucrarea 8).
+-- Script idempotent: poate fi rulat de mai multe ori fără eroare.
+
+IF DB_ID(N'Student') IS NULL
+BEGIN
+    CREATE DATABASE [Student];
+END
 GO
 
-USE Student;
+USE [Student];
 GO
 
-CREATE TABLE [dbo].[Student](
-	[StudentId] [int] IDENTITY(1,1) NOT NULL,
-	[RegistrationNumber] [varchar](7) NOT NULL,
-	[Name] [varchar](50) NOT NULL,
- CONSTRAINT [PK_Student] PRIMARY KEY CLUSTERED 
-(
-	[StudentId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+IF OBJECT_ID(N'dbo.Student', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Student]
+    (
+        [StudentId]          INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Student] PRIMARY KEY CLUSTERED,
+        [RegistrationNumber] VARCHAR(7)  NOT NULL CONSTRAINT [UQ_Student_RegistrationNumber] UNIQUE,
+        [Name]               NVARCHAR(50) NOT NULL
+    );
+END
 GO
 
-
-CREATE TABLE [dbo].[Grade](
-	[GradeId] [int] IDENTITY(1,1) NOT NULL,
-	[StudentId] [int] NOT NULL,
-	[Exam] [decimal](18, 2) NULL,
-	[Activity] [decimal](18, 2) NULL,
-	[Final] [decimal](18, 2) NULL,
- CONSTRAINT [PK_Grades] PRIMARY KEY CLUSTERED 
-(
-	[GradeId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+IF OBJECT_ID(N'dbo.Grade', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Grade]
+    (
+        [GradeId]   INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Grade] PRIMARY KEY CLUSTERED,
+        [StudentId] INT NOT NULL CONSTRAINT [FK_Grade_Student] REFERENCES [dbo].[Student]([StudentId]),
+        [Exam]      DECIMAL(4, 2) NULL CONSTRAINT [CK_Grade_Exam] CHECK ([Exam] > 0 AND [Exam] <= 10),
+        [Activity]  DECIMAL(4, 2) NULL CONSTRAINT [CK_Grade_Activity] CHECK ([Activity] > 0 AND [Activity] <= 10),
+        [Final]     DECIMAL(4, 2) NULL CONSTRAINT [CK_Grade_Final] CHECK ([Final] > 0 AND [Final] <= 10),
+        -- O singură notă per student: ținta pentru upsert-ul din Examples.Data.Repositories.GradesRepository.
+        CONSTRAINT [UQ_Grade_StudentId] UNIQUE ([StudentId])
+    );
+END
 GO
 
-ALTER TABLE [dbo].[Grade]  WITH CHECK ADD  CONSTRAINT [FK_Grades_Student] FOREIGN KEY([StudentId])
-REFERENCES [dbo].[Student] ([StudentId])
+-- Date de start: aceiași patru studenți folosiți în exemplul consolă din Lucrarea 3.
+MERGE [dbo].[Student] AS target
+USING (VALUES
+    (N'LM12345', N'Ana Popescu'),
+    (N'LM54321', N'Mihai Ionescu'),
+    (N'LM67890', N'Ioana Dumitrescu'),
+    (N'LM98765', N'Andrei Georgescu')
+) AS source ([RegistrationNumber], [Name])
+ON target.[RegistrationNumber] = source.[RegistrationNumber]
+WHEN NOT MATCHED THEN
+    INSERT ([RegistrationNumber], [Name]) VALUES (source.[RegistrationNumber], source.[Name]);
 GO
-
-ALTER TABLE [dbo].[Grade] CHECK CONSTRAINT [FK_Grades_Student]
-GO
-
-
