@@ -51,7 +51,7 @@ jobs:
         run: |
           set -e
           PATTERN='Exemple\.Domain|Example\.(Dto|Data|Api|Events)|Sudent|Accomodation|net8\.0|Swashbuckle\.AspNetCore"|Startup\.cs|copilot_instructions_full|view=net-5\.0'
-          if git grep -nE "$PATTERN" -- . ':!Lucrarea-04/anexa.md'; then
+          if git grep -nE "$PATTERN" -- . ':!.github/workflows/build.yml'; then
             echo "Au fost găsite resturi din structura veche (vezi mai sus)." >&2
             exit 1
           fi

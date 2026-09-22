@@ -1,3 +1,5 @@
+> **Notă**: unele exemple de cod din această anexă folosesc încă stilul anterior (constructor `private` + `TryParse` care aruncă/întoarce `bool`, stare `Invalid[Entity]`, clase `Operation` cu moștenire). Stilul curent al laboratorului — cel pe care trebuie să-l urmați — este descris în [`copilot-instructions.md`](copilot-instructions.md) și implementat în [Lucrarea 3](../Lucrarea-03/Exemple/Examples.Domain/): obiecte-valoare cu `Create`/`Parse` care întorc `Result`, stări fără `Invalid`, operații ca membri de extensie. Unde exemplele de mai jos diferă, adaptați-le la stilul curent.
+
 ## ANEXA A: Exemple Complete de Prompturi pentru Fiecare Domeniu
 
 ### A.1: Domeniul Gestionare Examene
@@ -314,121 +316,7 @@ public static class SpaceReservation
 
 ## ANEXA B: Greșeli Comune și Soluții
 
-### B.1: Constructor Public în Value Object
-
-❌ **Greșit:**
-```csharp
-public record CourseCode
-{
-    public string Value { get; }
-    public CourseCode(string value) { Value = value; } // PUBLIC!
-}
-```
-
-✅ **Corect:**
-```csharp
-public record CourseCode
-{
-    public string Value { get; }
-    private CourseCode(string value) { /* validation */ } // PRIVATE!
-    public static bool TryParse(string input, out CourseCode? result) { /* ... */ }
-}
-```
-
-### B.2: Properties Mutabile
-
-❌ **Greșit:**
-```csharp
-public record ExamDate
-{
-    public DateTime Value { get; set; } // MUTABLE!
-}
-```
-
-✅ **Corect:**
-```csharp
-public record ExamDate
-{
-    public DateTime Value { get; } // IMMUTABLE!
-    private ExamDate(DateTime value) { /* ... */ }
-}
-```
-
-### B.3: TryParse Aruncă Excepții
-
-❌ **Greșit:**
-```csharp
-public static bool TryParse(string input, out CourseCode? result)
-{
-    if (string.IsNullOrEmpty(input))
-        throw new ArgumentException(); // NU ARUNCA EXCEPTII!
-    // ...
-}
-```
-
-✅ **Corect:**
-```csharp
-public static bool TryParse(string input, out CourseCode? result)
-{
-    result = null;
-    if (string.IsNullOrEmpty(input))
-        return false; // Return false, nu throw!
-    // ...
-}
-```
-
-### B.4: Business Logic în Workflow
-
-❌ **Greșit:**
-```csharp
-public IExamScheduledEvent Execute(ScheduleExamCommand command)
-{
-    var exam = new UnvalidatedExamScheduling(...);
-    
-    // NU! Business logic direct în workflow
-    if (CourseCode.TryParse(exam.CourseCode, out var code))
-    {
-        // validare aici...
-    }
-    // ...
-}
-```
-
-✅ **Corect:**
-```csharp
-public IExamScheduledEvent Execute(ScheduleExamCommand command, 
-                                   Func<CourseCode, bool> checkCourseExists)
-{
-    var exam = new UnvalidatedExamScheduling(...);
-    
-    // Doar compoziție de operații
-    IExamScheduling result = new ValidateExamSchedulingOperation(checkCourseExists).Transform(exam);
-    result = new AllocateRoomOperation(...).Transform(result);
-    // ...
-}
-```
-
-### B.5: List în Loc de IReadOnlyCollection
-
-❌ **Greșit:**
-```csharp
-public record ValidatedExam
-{
-    public List<ValidatedGrade> Grades { get; } // List mutabil!
-}
-```
-
-✅ **Corect:**
-```csharp
-public record ValidatedExam
-{
-    public IReadOnlyCollection<ValidatedGrade> Grades { get; } // Readonly!
-    internal ValidatedExam(IReadOnlyCollection<ValidatedGrade> grades)
-    {
-        Grades = grades;
-    }
-}
-```
+Vedeți [ANEXA P: Common Mistakes and Solutions](#anexa-p-common-mistakes-and-solutions) pentru lista completă de greșeli frecvente cu exemple înainte/după (aceleași categorii de greșeli erau descrise aici, pe scurt și în română; ANEXA P le acoperă mai detaliat).
 
 ---
 
@@ -436,452 +324,44 @@ public record ValidatedExam
 
 ### Înainte de Predare
 
-**Value Objects:**
+**Obiecte-valoare:**
 - [ ] Toate au constructor `private`
-- [ ] Toate au metodă `TryParse`
+- [ ] Toate au metodă statică `Create`/`Parse` care întoarce `Result<T, TError>` — nicio metodă nu aruncă excepție pentru date de intrare nevalide
 - [ ] Toate proprietățile sunt `{ get; }` only
-- [ ] Validare în constructor
 - [ ] `ToString()` override implementat
 
-**Entity States:**
-- [ ] Interface `I[Entity]` definită
-- [ ] Toate stările sunt records separate
-- [ ] Toate constructor-ii sunt `internal`
-- [ ] Collections sunt `IReadOnlyCollection<T>`
-- [ ] Există stare `Invalid[Entity]` cu `Reasons`
+**Stările entității:**
+- [ ] `abstract record` cu constructor `private` (tip-sumă închis, nu interfață)
+- [ ] Toate stările sunt înregistrări imbricate `sealed`
+- [ ] Collections sunt `IReadOnlyList<T>`/`IReadOnlySet<T>`
+- [ ] **Nu** există o stare `Invalid[Entity]` — eșecurile sunt valori `Result.Error`
+- [ ] Există un fold `Match<TResult>` pentru potrivire exhaustivă
 
-**Operations:**
-- [ ] Extind clasa de bază corectă
-- [ ] Pattern matching include toate stările
-- [ ] Dependencies injectate prin constructor
+**Operații:**
+- [ ] Scrise ca membri de extensie C# 14 pe starea exactă pe care o transformă
+- [ ] Fără clasă de bază `DomainOperation`/metode virtuale `OnXxx`
+- [ ] Dependențele sunt parametri de funcție, nu câmpuri injectate prin constructor
+- [ ] Validarea adună toate erorile (`Result.Combine`/`Traverse`), nu se oprește la prima
 - [ ] Fiecare operație = o singură responsabilitate
-- [ ] Nu conțin logică de UI sau persistență
 
 **Workflow:**
-- [ ] Metodă `Execute()` publică
-- [ ] Primește command + dependencies ca parametri
-- [ ] Creează entitate Unvalidated la început
-- [ ] Chainuiește operații cu `Transform()`
-- [ ] Returnează Event
-- [ ] NU conține business logic
+- [ ] Nucleul pur e o funcție statică (`Map`/`Bind`-compusă), fără business logic în afara ei
+- [ ] Primește dependențele (inclusiv ceasul) ca parametri
+- [ ] Creează entitatea `Unvalidated` la început
+- [ ] Se încheie cu conversia stării finale la eveniment (`ToEvent()`)
+- [ ] Nu conține `try`/`catch`
 
 **Aplicație Console:**
-- [ ] Compilează fără erori
+- [ ] Compilează fără erori sau avertismente
 - [ ] Are cel puțin 3 cazuri de test
-- [ ] Afișează clar rezultatele (success/failure)
-- [ ] Mock dependencies sunt funcționale
+- [ ] Afișează clar rezultatele (`result.Match(...)`)
+- [ ] Dependențele simulate sunt valori fixe în memorie (fără EF Core, fără ASP.NET)
 
 **Documentație:**
 - [ ] README.md completat
 - [ ] Event Storming diagram inclus
 - [ ] Bounded contexts documentate
 - [ ] Prompturi AI salvate
-
----
-
-Mult succes! 🚀geți 3-5 value objects** din domeniul vostru și implementați-le folosind GitHub Copilot.
-
-**Template de prompt pentru Copilot** (scrieți ca și comentariu în cod):
-
-```csharp
-// Create a value object for [NUME] in the [DOMENIU] domain
-// Rules:
-// - [REGULĂ VALIDARE 1]
-// - [REGULĂ VALIDARE 2]
-// - Format: [FORMAT/PATTERN]
-// Follow the pattern from StudentRegistrationNumber and Grade classes
-// Use record type, private constructor, TryParse method, validation
-```
-
-**Exemplu concret pentru Opțiunea A**:
-
-```csharp
-// Create a value object for ExamDate in the exam scheduling domain
-// Rules:
-// - Must be a future date
-// - Must be within the exam session period (June 1 - July 15 or January 15 - February 28)
-// - Cannot be on weekends
-// - Must be at least 7 days after course ends
-// Follow the pattern from StudentRegistrationNumber and Grade classes
-// Use record type, private constructor, TryParse method, validation
-```
-
-**Prompturi adiționale pentru rafinare**:
-
-```csharp
-// Add a method to check if two ExamDate objects are in the same week
-
-// Add a method to check if this date conflicts with another exam date (same day or next day)
-
-// Add validation for Romanian national holidays
-```
-
-### Sarcina 2.4: Implementarea Entităților cu Stări Multiple
-
-**Pentru agregarea principală** din domeniu, implementați toate stările posibile.
-
-**Template pentru Copilot**:
-
-```csharp
-// Create entity states for [ENTITY_NAME] following the Exam pattern
-// States needed:
-// 1. Unvalidated[Entity] - initial state with raw string data
-// 2. Validated[Entity] - validated with proper value objects
-// 3. [CustomState1] - [description]
-// 4. [CustomState2] - [description]
-// 5. Invalid[Entity] - validation failed with reasons
-//
-// Each state should:
-// - Implement I[Entity] interface
-// - Be a record type with internal constructor
-// - Use IReadOnlyCollection for lists
-// - Have appropriate properties for that state
-```
-
-**Exemplu pentru Opțiunea A (ExamScheduling)**:
-
-```csharp
-// Create entity states for ExamScheduling following the Exam pattern
-// States needed:
-// 1. UnvalidatedExamScheduling - raw data from professor (course code, proposed dates, duration)
-// 2. ValidatedExamScheduling - validated data with proper value objects
-// 3. RoomAllocatedExamScheduling - after room allocation (includes room number, capacity)
-// 4. PublishedExamScheduling - after publishing to students (includes publication date, enrolled students count)
-// 5. ClosedExamScheduling - exam finished (includes actual attendance, grades submitted flag)
-// 6. InvalidExamScheduling - validation failed (room unavailable, date conflicts, etc.)
-//
-// Each state should:
-// - Implement IExamScheduling interface
-// - Be a record type with internal constructor
-// - Use IReadOnlyCollection for lists
-// - Have appropriate properties for that state
-
-public static class ExamScheduling
-{
-    public interface IExamScheduling { }
-    
-    // Copilot will generate the rest...
-}
-```
-
-### Sarcina 2.5: Implementarea Workflow-ului Principal
-
-**Identificați workflow-ul principal** din domeniu (similar cu `PublishExamWorkflow`).
-
-**Template**:
-
-```csharp
-// Create workflow for [WORKFLOW_NAME] following PublishExamWorkflow pattern
-// Input: [Command]Command with [description of input data]
-// Dependencies: [list of external dependencies as Func<> parameters]
-//
-// Steps:
-// 1. Create Unvalidated[Entity] from command
-// 2. Apply [Operation1]Operation - [what it does]
-// 3. Apply [Operation2]Operation - [what it does]
-// 4. Apply [Operation3]Operation - [what it does]
-// 5. Convert final state to I[Entity][Action]Event
-//
-// Return: I[Entity][Action]Event (success or failure)
-```
-
----
-
-## Partea 3: Implementarea Operațiilor de Domeniu (45 minute)
-
-### Sarcina 3.1: Implementarea Operației de Validare
-
-**Implementați operația de validare** similară cu `ValidateExamOperation`.
-
-**Prompturi ghidate**:
-
-**Pas 1: Structura de bază**
-```csharp
-// Create [ValidateEntityOperation] that inherits from [Entity]Operation
-// It should transform Unvalidated[Entity] to either:
-// - Validated[Entity] if all validations pass
-// - Invalid[Entity] if any validation fails
-// 
-// Dependencies needed (as constructor parameters):
-// - [Dependency 1]: Func<[Type], bool> [description]
-// - [Dependency 2]: Func<[Type], [ReturnType]> [description]
-//
-// Override OnUnvalidated method only
-```
-
-**Pas 2: Logica de validare**
-```csharp
-// In ValidateListOf[Items] method:
-// - Iterate through each unvalidated item
-// - For each item, validate all fields (call Validate[Field] helper methods)
-// - Collect all validation errors in a list
-// - If no errors, create Validated[Item]
-// - Return tuple of (validatedItems, validationErrors)
-//
-// Validation methods needed for each field:
-// - ValidateAndParse[Field1] - checks [rules]
-// - ValidateAndParse[Field2] - checks [rules]
-```
-
-**Pas 3: Exemple de validări specifice**
-
-Pentru fiecare value object, specificați regula:
-
-```csharp
-// ValidateAndParse[FieldName]:
-// - Try to parse using [ValueObject].TryParse
-// - If parsing fails, add error: "Invalid [field] ([details])"
-// - If external validation needed, call dependency function
-// - If dependency check fails, add error: "[Entity] not found/invalid ([details])"
-// - Return parsed value object or null
-```
-
-### Sarcina 3.2: Implementarea Operațiilor de Business Logic
-
-**Implementați 2-3 operații specifice** domeniului vostru.
-
-**Template general**:
-
-```csharp
-// Create [OperationName]Operation that processes [SourceState] to [TargetState]
-// Business logic:
-// - [RULE 1]
-// - [RULE 2]
-// - [CALCULATION/TRANSFORMATION]
-//
-// Override On[SourceState] method
-// Map from [SourceState] items to [TargetState] items
-// Use LINQ Select to transform each item
-```
-
-**Exemple pentru Opțiunea B (Cămin)**:
-
-```csharp
-// Create CalculateScoreOperation that processes ValidatedApplication to ScoredApplication
-// Business logic:
-// - Calculate base score from average grade (0-40 points): (average - 5) * 8
-// - Add distance points (0-30 points): distance_km / 10 * 3 (max 30)
-// - Add income points (0-20 points): if income < threshold, 20 points, else 0
-// - Add special situation points (0-10 points): based on documentation
-// - Total score = sum of all (max 100)
-//
-// Override OnValidated method
-// Map from ValidatedApplication items to ScoredApplication items
-// Use LINQ Select to transform each item
-```
-
-```csharp
-// Create AllocateRoomOperation that processes ScoredApplication to RoomAllocatedApplication
-// Dependencies:
-// - Func<RoomType, IEnumerable<AvailableRoom>> getAvailableRooms
-// - Func<RoomId, bool> reserveRoom
-//
-// Business logic:
-// - Sort applications by score (descending)
-// - For each application in order:
-//   - Get available rooms matching preferences
-//   - Try to allocate first available room
-//   - If allocation successful, create RoomAllocatedApplication
-//   - If no room available, mark as Unallocated with reason
-//
-// Override OnScored method
-```
-
-### Sarcina 3.3: Implementarea Conversiei la Evenimente
-
-**Implementați clasa de evenimente** similară cu `ExamPublishedEvent`.
-
-**Template**:
-
-```csharp
-// Create [Entity][Action]Event class following ExamPublishedEvent pattern
-//
-// Define interface I[Entity][Action]Event
-// 
-// Define success event:
-// - [Entity][Action]SucceededEvent with properties: [list properties]
-//
-// Define failure event:
-// - [Entity][Action]FailedEvent with properties: IEnumerable<string> Reasons
-//
-// Create extension method ToEvent for I[Entity] that uses pattern matching:
-// - Unvalidated[Entity] → failure with "Unexpected unvalidated state"
-// - [IntermediateState] → failure with "Unexpected [state] state"
-// - Invalid[Entity] → failure with collected reasons
-// - [FinalSuccessState] → success with relevant data
-```
-
----
-
-## Partea 4: Testarea și Rafinarea (30 minute)
-
-### Sarcina 4.1: Crearea unei Aplicații Console
-
-**Creați o aplicație console** care demonstrează workflow-ul complet.
-
-**Template**:
-
-```csharp
-// Create console application that demonstrates [WorkflowName]
-// 
-// Steps:
-// 1. Create sample unvalidated data (3-5 examples, including invalid cases)
-// 2. Create mock dependencies (return hard-coded values)
-// 3. Create command from sample data
-// 4. Execute workflow
-// 5. Display result based on event type:
-//    - Success: show [relevant information]
-//    - Failure: show all validation errors
-//
-// Use pattern matching to handle event types
-// Format output clearly for readability
-```
-
-### Sarcina 4.2: Validarea cu AI
-
-**Folosiți AI pentru code review**:
-
-```
-Am implementat un sistem DDD pentru [DOMENIU] în C#. 
-
-Codul include:
-- Value objects: [listă]
-- Entity states: [listă]
-- Operations: [listă]
-- Workflow: [nume]
-
-Te rog să analizezi codul și să verifici:
-1. Respectarea principiilor DDD (immutability, encapsulation, ubiquitous language)
-2. Respectarea pattern-urilor identificate (value objects, state pattern, operations)
-3. Consistența naming conventions
-4. Separarea responsabilităților (SRP)
-5. Potential bugs sau edge cases neacoperite
-
-Pentru fiecare problemă găsită, sugerează o soluție concretă.
-
-[ATTACH YOUR CODE]
-```
-
-### Sarcina 4.3: Generarea Testelor Unitare
-
-**Prompt pentru generarea testelor**:
-
-```csharp
-// Generate xUnit tests for [ClassName]
-//
-// Test cases needed:
-// 1. Valid inputs - should create object successfully
-// 2. Invalid inputs - should throw appropriate exception or return false
-// 3. Edge cases: [list specific edge cases]
-// 4. Business rules: [list business rules to test]
-//
-// Use:
-// - [Fact] for simple tests
-// - [Theory] with [InlineData] for parameterized tests
-// - FluentAssertions for assertions
-// - Arrange-Act-Assert pattern
-```
-
----
-
-## Parte 5: Prezentare și Discuții (30 minute)
-
-### Sarcina 5.1: Pregătirea Prezentării
-
-Fiecare echipă va prezenta (10 minute):
-
-1. **Domeniul ales** și bounded contexts identificate (2 min)
-2. **Event storming results** - diagrama cu evenimente (2 min)
-3. **Arhitectura soluției** - entități, value objects, operații (3 min)
-4. **Demonstrație live** - rularea aplicației console (2 min)
-5. **Lecții învățate** despre folosirea AI (1 min)
-
-### Sarcina 5.2: Analiza Critică
-
-**Întrebări pentru reflecție** (discutați în echipă):
-
-1. **Acuratețea AI**: În ce situații a sugerat AI soluții corecte vs incorecte?
-2. **Creativitatea**: A propus AI soluții la care nu v-ați gândit?
-3. **Limitări**: Ce aspecte ale DDD a înțeles greșit AI?
-4. **Eficiență**: Cum se compară timpul de implementare cu/fără AI?
-5. **Învățare**: A ajutat sau a împiedicat AI înțelegerea profundă a conceptelor?
-
----
-
-## Criterii de Evaluare
-
-| Criteriu | Punctaj | Descriere |
-|----------|---------|-----------|
-| **Event Storming** | 15% | Calitatea identificării evenimentelor și bounded contexts |
-| **Value Objects** | 20% | Implementare corectă (validare, immutability, TryParse) |
-| **Entity States** | 20% | Design pattern corect, tranziții logice între stări |
-| **Operations** | 20% | Separarea responsabilităților, single responsibility |
-| **Workflow** | 15% | Compoziție corectă, dependency injection |
-| **Utilizare AI** | 10% | Prompturi eficiente, validare critică a rezultatelor |
-
----
-
-## Resurse Suplimentare
-
-### Prompturi Utile pentru Debugging
-
-```
-Codul meu [DESCRIPTION OF ISSUE]. 
-Iată implementarea:
-[CODE]
-
-Ar trebui să [EXPECTED BEHAVIOR] dar în schimb [ACTUAL BEHAVIOR].
-
-Implementarea este bazată pe următorul pattern:
-[REFERENCE PATTERN/CODE]
-
-Identifică problema și sugerează o soluție care respectă pattern-ul DDD.
-```
-
-### Prompturi pentru Extindere
-
-```
-Am implementat workflow-ul de bază pentru [DOMAIN]. 
-Acum vreau să adaug [NEW FEATURE].
-
-Contextul actual:
-- Entități: [LIST]
-- Operații: [LIST]  
-- Workflow actual: [DESCRIPTION]
-
-Cum ar trebui să modific/extind implementarea pentru a suporta [NEW FEATURE]?
-Oferă soluții care mențin principiile DDD și nu strică codul existent.
-```
-
-### Checklist Finală
-
-- [ ] Toate value objects au validare și TryParse
-- [ ] Toate state records sunt immutable
-- [ ] Operațiile respectă Single Responsibility
-- [ ] Workflow-ul e o compoziție de operații
-- [ ] Evenimente definite pentru success/failure
-- [ ] Aplicație console demonstrează cazuri valide și invalide
-- [ ] Codul compilează fără warnings
-- [ ] Naming conventions sunt consistente
-- [ ] Nu există logică de business în UI/console
-
----
-
-## Concluzii
-
-Această lucrare v-a introdus în folosirea instrumentelor AI pentru design software, menținând în același timp rigoarea arhitecturală necesară pentru sisteme complexe. 
-
-**Recomandări pentru viitor**:
-- Folosiți AI ca asistent, nu ca înlocuitor pentru gândirea critică
-- Validați întotdeauna sugestiile AI cu principiile DDD
-- Construiți o bibliotecă de prompturi reutilizabile
-- Documentați pattern-urile care funcționează bine în proiectul vostru
-
-**Next steps**:
-- Extindeți sistemul cu bounded contexts suplimentare
-- Implementați comunicarea între contexte (integration events)
-- Adăugați persistență (repository pattern)
-- Explorați event sourcing pentru audit trail
 
 ---
 
@@ -1662,11 +1142,13 @@ public static bool TryParse(string input, out MyValueObject? result)
 
 ## ANEXA E: Grading Rubric Detailat
 
+*(Vedeți și [ANEXA N: Evaluation Rubric - Detailed Breakdown](#anexa-n-evaluation-rubric---detailed-breakdown) pentru o defalcare pe sub-criterii, în engleză, a acelorași ponderi.)*
+
 ### Partea 1: Event Storming (15 puncte)
 
 | Criteriu | Excelent (5p) | Bun (3-4p) | Satisfăcător (1-2p) | Insuficient (0p) |
 |----------|---------------|------------|---------------------|------------------|
-| **Identificare evenimente** | 15+ evenimente relevante, nupte descrierediverse și acoperă tot flow-ul | 10-14 evenimente, acoperire parțială | 5-9 evenimente, lipsesc scenarii importante | < 5 evenimente sau majoritatea irelevante |
+| **Identificare evenimente** | 15+ evenimente relevante, descriere diversă și acoperă tot flow-ul | 10-14 evenimente, acoperire parțială | 5-9 evenimente, lipsesc scenarii importante | < 5 evenimente sau majoritatea irelevante |
 | **Bounded contexts** | Contexts clar delimitați, responsabilități bine definite, comunicare explicită | 2-3 contexts, delimitare rezonabilă | 1-2 contexts, delimitare vagă | Nu sunt identificate contexte |
 | **Comenzi și agregări** | Toate evenimentele au comenzi și agregări asociate, consistente | Majoritatea au, câteva lipsesc | Doar câteva identificate | Nu sunt identificate |
 
@@ -1702,7 +1184,7 @@ public static bool TryParse(string input, out MyValueObject? result)
 | Criteriu | 5p | 3-4p | 1-2p | 0p |
 |----------|-----|------|------|-----|
 | **Composition** | Pipeline clar, operații chainuite logic | Majoritatea chainuite | Câteva operații lipsă | Nu e pipeline |
-| **Error handling** | Convert la event corect, gestionează toate stările | Majoritatea cazurilor | Câteva cazuri nelipsă | Fără error handling |
+| **Error handling** | Convert la event corect, gestionează toate stările | Majoritatea cazurilor | Câteva cazuri lipsă | Fără error handling |
 | **Dependencies** | Toate injectate prin constructor | Majoritatea | Câteva hardcoded | Fără DI |
 
 ### Partea 6: Utilizare AI (10 puncte)
@@ -1722,651 +1204,7 @@ public static bool TryParse(string input, out MyValueObject? result)
 
 ## ANEXA F: Exemple de Cod Complet
 
-### F.1: Value Object Complet - ExamDate
-
-```csharp
-using System;
-using System.Text.RegularExpressions;
-using Examples.Domain.Exceptions;
-
-namespace Examples.Domain.Models
-{
-    /// <summary>
-    /// Represents a valid exam date within an exam session period
-    /// </summary>
-    public record ExamDate
-    {
-        // Exam session periods
-        private static readonly (int Month, int StartDay, int EndDay)[] ValidPeriods = 
-        {
-            (6, 1, 15),   // June 1-15 (summer session)
-            (7, 1, 15),   // July 1-15 (summer session continuation)
-            (1, 15, 31),  // January 15-31 (winter session)
-            (2, 1, 28)    // February 1-28 (winter session continuation)
-        };
-
-        public DateTime Value { get; }
-
-        private ExamDate(DateTime value)
-        {
-            if (IsValid(value))
-            {
-                Value = value.Date; // Normalize to start of day
-            }
-            else
-            {
-                throw new InvalidExamDateException(
-                    $"{value:yyyy-MM-dd} is not a valid exam date. " +
-                    $"Must be within exam session periods and not on weekend.");
-            }
-        }
-
-        private static bool IsValid(DateTime date)
-        {
-            // Must be in future
-            if (date.Date <= DateTime.Today)
-                return false;
-
-            // Cannot be weekend
-            if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
-                return false;
-
-            // Must be in valid exam session period
-            return IsInExamSessionPeriod(date);
-        }
-
-        private static bool IsInExamSessionPeriod(DateTime date)
-        {
-            foreach (var (month, startDay, endDay) in ValidPeriods)
-            {
-                if (date.Month == month && date.Day >= startDay && date.Day <= endDay)
-                    return true;
-            }
-            return false;
-        }
-
-        public static bool TryParse(string dateString, out ExamDate? examDate)
-        {
-            examDate = null;
-
-            if (string.IsNullOrWhiteSpace(dateString))
-                return false;
-
-            if (!DateTime.TryParse(dateString, out DateTime parsedDate))
-                return false;
-
-            if (!IsValid(parsedDate))
-                return false;
-
-            try
-            {
-                examDate = new ExamDate(parsedDate);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Checks if this exam date is in the same week as another exam date
-        /// </summary>
-        public bool IsInSameWeek(ExamDate other)
-        {
-            var startOfWeek = Value.AddDays(-(int)Value.DayOfWeek);
-            var otherStartOfWeek = other.Value.AddDays(-(int)other.Value.DayOfWeek);
-            return startOfWeek == otherStartOfWeek;
-        }
-
-        /// <summary>
-        /// Checks if this date is within N days of another date
-        /// </summary>
-        public bool IsWithinDays(ExamDate other, int days)
-        {
-            return Math.Abs((Value - other.Value).TotalDays) <= days;
-        }
-
-        public override string ToString() => Value.ToString("yyyy-MM-dd");
-    }
-}
-```
-
-### F.2: Entity States Complete - DormitoryApplication
-
-```csharp
-using System;
-using System.Collections.Generic;
-
-namespace Examples.Domain.Models
-{
-    public static class DormitoryApplication
-    {
-        public interface IDormitoryApplication { }
-
-        public record UnvalidatedApplication : IDormitoryApplication
-        {
-            public UnvalidatedApplication(
-                string studentId,
-                string name,
-                string averageGrade,
-                string distanceFromHome,
-                string monthlyIncomePerPerson,
-                string hasSpecialSituation,
-                string preferredBuildings,
-                string documentsAttached)
-            {
-                StudentId = studentId;
-                Name = name;
-                AverageGrade = averageGrade;
-                DistanceFromHome = distanceFromHome;
-                MonthlyIncomePerPerson = monthlyIncomePerPerson;
-                HasSpecialSituation = hasSpecialSituation;
-                PreferredBuildings = preferredBuildings;
-                DocumentsAttached = documentsAttached;
-            }
-
-            public string StudentId { get; }
-            public string Name { get; }
-            public string AverageGrade { get; }
-            public string DistanceFromHome { get; }
-            public string MonthlyIncomePerPerson { get; }
-            public string HasSpecialSituation { get; }
-            public string PreferredBuildings { get; }
-            public string DocumentsAttached { get; }
-        }
-
-        public record ValidatedApplication : IDormitoryApplication
-        {
-            internal ValidatedApplication(
-                StudentId studentId,
-                StudentName name,
-                AverageGrade averageGrade,
-                Distance distanceFromHome,
-                MonthlyIncome monthlyIncome,
-                bool hasSpecialSituation,
-                IReadOnlyList<BuildingCode> preferredBuildings,
-                bool documentsComplete)
-            {
-                StudentId = studentId;
-                Name = name;
-                AverageGrade = averageGrade;
-                DistanceFromHome = distanceFromHome;
-                MonthlyIncome = monthlyIncome;
-                HasSpecialSituation = hasSpecialSituation;
-                PreferredBuildings = preferredBuildings;
-                DocumentsComplete = documentsComplete;
-            }
-
-            public StudentId StudentId { get; }
-            public StudentName Name { get; }
-            public AverageGrade AverageGrade { get; }
-            public Distance DistanceFromHome { get; }
-            public MonthlyIncome MonthlyIncome { get; }
-            public bool HasSpecialSituation { get; }
-            public IReadOnlyList<BuildingCode> PreferredBuildings { get; }
-            public bool DocumentsComplete { get; }
-        }
-
-        public record ScoredApplication : IDormitoryApplication
-        {
-            internal ScoredApplication(
-                StudentId studentId,
-                StudentName name,
-                AllocationScore score,
-                AverageGrade averageGrade,
-                Distance distance,
-                MonthlyIncome income,
-                bool hasSpecialSituation,
-                IReadOnlyList<BuildingCode> preferredBuildings)
-            {
-                StudentId = studentId;
-                Name = name;
-                Score = score;
-                AverageGrade = averageGrade;
-                Distance = distance;
-                Income = income;
-                HasSpecialSituation = hasSpecialSituation;
-                PreferredBuildings = preferredBuildings;
-            }
-
-            public StudentId StudentId { get; }
-            public StudentName Name { get; }
-            public AllocationScore Score { get; }
-            public AverageGrade AverageGrade { get; }
-            public Distance Distance { get; }
-            public MonthlyIncome Income { get; }
-            public bool HasSpecialSituation { get; }
-            public IReadOnlyList<BuildingCode> PreferredBuildings { get; }
-        }
-
-        public record AllocatedApplication : IDormitoryApplication
-        {
-            internal AllocatedApplication(
-                StudentId studentId,
-                StudentName name,
-                AllocationScore score,
-                RoomId allocatedRoom,
-                BuildingCode building,
-                DateTime allocatedAt,
-                DateTime deadlineToConfirm)
-            {
-                StudentId = studentId;
-                Name = name;
-                Score = score;
-                AllocatedRoom = allocatedRoom;
-                Building = building;
-                AllocatedAt = allocatedAt;
-                DeadlineToConfirm = deadlineToConfirm;
-            }
-
-            public StudentId StudentId { get; }
-            public StudentName Name { get; }
-            public AllocationScore Score { get; }
-            public RoomId AllocatedRoom { get; }
-            public BuildingCode Building { get; }
-            public DateTime AllocatedAt { get; }
-            public DateTime DeadlineToConfirm { get; }
-        }
-
-        public record ConfirmedApplication : IDormitoryApplication
-        {
-            internal ConfirmedApplication(
-                StudentId studentId,
-                RoomId room,
-                DateTime confirmedAt,
-                DateTime moveInDate)
-            {
-                StudentId = studentId;
-                Room = room;
-                ConfirmedAt = confirmedAt;
-                MoveInDate = moveInDate;
-            }
-
-            public StudentId StudentId { get; }
-            public RoomId Room { get; }
-            public DateTime ConfirmedAt { get; }
-            public DateTime MoveInDate { get; }
-        }
-
-        public record RejectedApplication : IDormitoryApplication
-        {
-            internal RejectedApplication(
-                StudentId studentId,
-                DateTime rejectedAt,
-                string reason)
-            {
-                StudentId = studentId;
-                RejectedAt = rejectedAt;
-                Reason = reason;
-            }
-
-            public StudentId StudentId { get; }
-            public DateTime RejectedAt { get; }
-            public string Reason { get; }
-        }
-
-        public record UnallocatedApplication : IDormitoryApplication
-        {
-            internal UnallocatedApplication(
-                StudentId studentId,
-                StudentName name,
-                AllocationScore score,
-                string reason)
-            {
-                StudentId = studentId;
-                Name = name;
-                Score = score;
-                Reason = reason;
-            }
-
-            public StudentId StudentId { get; }
-            public StudentName Name { get; }
-            public AllocationScore Score { get; }
-            public string Reason { get; }
-        }
-
-        public record InvalidApplication : IDormitoryApplication
-        {
-            internal InvalidApplication(
-                string studentId,
-                IEnumerable<string> reasons)
-            {
-                StudentId = studentId;
-                Reasons = reasons;
-            }
-
-            public string StudentId { get; }
-            public IEnumerable<string> Reasons { get; }
-        }
-    }
-}
-```
-
-### F.3: Operation Complete - CalculateScoreOperation
-
-```csharp
-using Examples.Domain.Models;
-using System.Collections.Generic;
-using System.Linq;
-using static Examples.Domain.Models.DormitoryApplication;
-
-namespace Examples.Domain.Operations
-{
-    internal sealed class CalculateScoreOperation : DormitoryApplicationOperation
-    {
-        private readonly decimal incomeThreshold;
-
-        internal CalculateScoreOperation(decimal incomeThreshold)
-        {
-            this.incomeThreshold = incomeThreshold;
-        }
-
-        protected override IDormitoryApplication OnValidated(ValidatedApplication validated)
-        {
-            var score = CalculateTotalScore(validated);
-
-            return new ScoredApplication(
-                validated.StudentId,
-                validated.Name,
-                score,
-                validated.AverageGrade,
-                validated.DistanceFromHome,
-                validated.MonthlyIncome,
-                validated.HasSpecialSituation,
-                validated.PreferredBuildings
-            );
-        }
-
-        private AllocationScore CalculateTotalScore(ValidatedApplication application)
-        {
-            var gradePoints = CalculateGradePoints(application.AverageGrade);
-            var distancePoints = CalculateDistancePoints(application.DistanceFromHome);
-            var incomePoints = CalculateIncomePoints(application.MonthlyIncome);
-            var specialPoints = CalculateSpecialSituationPoints(application.HasSpecialSituation);
-
-            var totalPoints = gradePoints + distancePoints + incomePoints + specialPoints;
-
-            return AllocationScore.Create(totalPoints);
-        }
-
-        private static decimal CalculateGradePoints(AverageGrade grade)
-        {
-            // Formula: (average - 5.00) * 8, max 40 points
-            var points = (grade.Value - 5.00m) * 8m;
-            return Math.Max(0, Math.Min(points, 40m));
-        }
-
-        private static decimal CalculateDistancePoints(Distance distance)
-        {
-            // Formula: (distance_km / 10) * 3, max 30 points
-            var points = (distance.Value / 10m) * 3m;
-            return Math.Max(0, Math.Min(points, 30m));
-        }
-
-        private decimal CalculateIncomePoints(MonthlyIncome income)
-        {
-            // If income below threshold: 20 points, else 0
-            return income.Value < incomeThreshold ? 20m : 0m;
-        }
-
-        private static decimal CalculateSpecialSituationPoints(bool hasSpecialSituation)
-        {
-            // Documented special situation: 10 points
-            return hasSpecialSituation ? 10m : 0m;
-        }
-    }
-}
-```
-
-### F.4: Workflow Complete - AllocateDormitoryWorkflow
-
-```csharp
-using Examples.Domain.Models;
-using Examples.Domain.Operations;
-using System;
-using System.Collections.Generic;
-using static Examples.Domain.Models.DormitoryApplication;
-using static Examples.Domain.Models.DormitoryAllocationEvent;
-
-namespace Examples.Domain.Workflows
-{
-    public class AllocateDormitoryWorkflow
-    {
-        public IDormitoryAllocationEvent Execute(
-            AllocateDormitoryCommand command,
-            Func<StudentId, bool> checkStudentExists,
-            Func<StudentId, bool> checkStudentEligible,
-            Func<StudentId, bool> checkDocumentsUploaded,
-            decimal incomeThreshold,
-            Func<BuildingCode, IEnumerable<RoomId>> getAvailableRooms,
-            Func<RoomId, bool> reserveRoom)
-        {
-            // Create list of unvalidated applications
-            var unvalidatedApplications = command.Applications
-                .Select(app => new UnvalidatedApplication(
-                    app.StudentId,
-                    app.Name,
-                    app.AverageGrade,
-                    app.DistanceFromHome,
-                    app.MonthlyIncomePerPerson,
-                    app.HasSpecialSituation,
-                    app.PreferredBuildings,
-                    app.DocumentsAttached))
-                .ToList()
-                .AsReadOnly();
-
-            // Step 1: Validate applications
-            var validateOp = new ValidateApplicationOperation(
-                checkStudentExists,
-                checkStudentEligible,
-                checkDocumentsUploaded);
-            
-            var validatedApps = unvalidatedApplications
-                .Select(app => validateOp.Transform(app))
-                .ToList()
-                .AsReadOnly();
-
-            // Step 2: Calculate scores
-            var calculateOp = new CalculateScoreOperation(incomeThreshold);
-            
-            var scoredApps = validatedApps
-                .Select(app => calculateOp.Transform(app))
-                .OfType<ScoredApplication>() // Filter only successfully scored
-                .ToList()
-                .AsReadOnly();
-
-            // Step 3: Allocate rooms
-            var allocateOp = new AllocateRoomsOperation(
-                getAvailableRooms,
-                reserveRoom);
-            
-            var allocationResults = allocateOp.Transform(scoredApps);
-
-            // Convert to event
-            return allocationResults.ToEvent();
-        }
-    }
-}
-```
-
-### F.5: Console Application Complete
-
-```csharp
-using Examples.Domain.Models;
-using Examples.Domain.Workflows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using static Examples.Domain.Models.DormitoryAllocationEvent;
-
-namespace Examples.ConsoleApp
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("=== Dormitory Allocation System ===\n");
-
-            // Create sample data
-            var command = CreateSampleCommand();
-
-            // Create mock dependencies
-            var studentDatabase = new HashSet<string> { "1234567890123", "9876543210987", "5555555555555" };
-            Func<StudentId, bool> checkStudentExists = id => studentDatabase.Contains(id.Value);
-            Func<StudentId, bool> checkStudentEligible = id => true; // All eligible for demo
-            Func<StudentId, bool> checkDocumentsUploaded = id => !id.Value.StartsWith("999"); // Simulate missing docs
-            
-            decimal incomeThreshold = 2000m;
-            
-            var availableRooms = new Dictionary<string, List<string>>
-            {
-                ["T1"] = new() { "T1-3-301", "T1-3-302" },
-                ["T2"] = new() { "T2-2-205" }
-            };
-            
-            Func<BuildingCode, IEnumerable<RoomId>> getAvailableRooms = building =>
-            {
-                if (availableRooms.TryGetValue(building.Value, out var rooms))
-                {
-                    return rooms.Select(r => RoomId.Parse(r));
-                }
-                return Enumerable.Empty<RoomId>();
-            };
-            
-            var reservedRooms = new HashSet<string>();
-            Func<RoomId, bool> reserveRoom = room =>
-            {
-                if (!reservedRooms.Contains(room.Value))
-                {
-                    reservedRooms.Add(room.Value);
-                    return true;
-                }
-                return false;
-            };
-
-            // Execute workflow
-            var workflow = new AllocateDormitoryWorkflow();
-            var result = workflow.Execute(
-                command,
-                checkStudentExists,
-                checkStudentEligible,
-                checkDocumentsUploaded,
-                incomeThreshold,
-                getAvailableRooms,
-                reserveRoom);
-
-            // Display results
-            DisplayResults(result);
-
-            Console.WriteLine("\nPress any key to exit...");
-            Console.ReadKey();
-        }
-
-        static AllocateDormitoryCommand CreateSampleCommand()
-        {
-            var applications = new[]
-            {
-                new UnvalidatedApplicationDto
-                {
-                    StudentId = "1234567890123",
-                    Name = "Popescu Ion",
-                    AverageGrade = "9.50",
-                    DistanceFromHome = "250",
-                    MonthlyIncomePerPerson = "1500",
-                    HasSpecialSituation = "true",
-                    PreferredBuildings = "T1,T2",
-                    DocumentsAttached = "true"
-                },
-                new UnvalidatedApplicationDto
-                {
-                    StudentId = "9876543210987",
-                    Name = "Ionescu Maria",
-                    AverageGrade = "8.75",
-                    DistanceFromHome = "180",
-                    MonthlyIncomePerPerson = "2500",
-                    HasSpecialSituation = "false",
-                    PreferredBuildings = "T1",
-                    DocumentsAttached = "true"
-                },
-                new UnvalidatedApplicationDto
-                {
-                    StudentId = "5555555555555",
-                    Name = "Georgescu Ana",
-                    AverageGrade = "10.00",
-                    DistanceFromHome = "320",
-                    MonthlyIncomePerPerson = "1200",
-                    HasSpecialSituation = "false",
-                    PreferredBuildings = "T2,T3",
-                    DocumentsAttached = "true"
-                },
-                new UnvalidatedApplicationDto // Invalid case
-                {
-                    StudentId = "invalid-id",
-                    Name = "Test Invalid",
-                    AverageGrade = "4.50", // Below minimum
-                    DistanceFromHome = "-50", // Negative
-                    MonthlyIncomePerPerson = "abc", // Not a number
-                    HasSpecialSituation = "maybe",
-                    PreferredBuildings = "ZZZ", // Invalid building
-                    DocumentsAttached = "false"
-                }
-            };
-
-            return new AllocateDormitoryCommand(applications);
-        }
-
-        static void DisplayResults(IDormitoryAllocationEvent allocationEvent)
-        {
-            switch (allocationEvent)
-            {
-                case AllocationSucceededEvent success:
-                    Console.WriteLine("✓ ALLOCATION SUCCEEDED\n");
-                    Console.WriteLine($"Total applications processed: {success.TotalApplications}");
-                    Console.WriteLine($"Successfully allocated: {success.AllocatedCount}");
-                    Console.WriteLine($"Unallocated (no rooms): {success.UnallocatedCount}");
-                    Console.WriteLine($"Invalid applications: {success.InvalidCount}\n");
-
-                    if (success.AllocatedStudents.Any())
-                    {
-                        Console.WriteLine("--- Allocated Students ---");
-                        foreach (var student in success.AllocatedStudents)
-                        {
-                            Console.WriteLine($"  • {student.Name} (Score: {student.Score:F2})");
-                            Console.WriteLine($"    Room: {student.Room}, Deadline: {student.Deadline:yyyy-MM-dd}");
-                        }
-                        Console.WriteLine();
-                    }
-
-                    if (success.UnallocatedStudents.Any())
-                    {
-                        Console.WriteLine("--- Unallocated Students (Waiting List) ---");
-                        foreach (var student in success.UnallocatedStudents)
-                        {
-                            Console.WriteLine($"  • {student.Name} (Score: {student.Score:F2})");
-                            Console.WriteLine($"    Reason: {student.Reason}");
-                        }
-                        Console.WriteLine();
-                    }
-                    break;
-
-                case AllocationFailedEvent failure:
-                    Console.WriteLine("✗ ALLOCATION FAILED\n");
-                    Console.WriteLine("Errors:");
-                    foreach (var reason in failure.Reasons)
-                    {
-                        Console.WriteLine($"  • {reason}");
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine("⚠ Unexpected event type");
-                    break;
-            }
-        }
-    }
-}
-```
+Exemplele de cod complet (obiect-valoare, stare de entitate, operație, workflow) nu mai stau aici — foloseau stilul anterior (constructor `private` + `TryParse`, stare `Invalid`) și duplicau, prost actualizat, ce e deja implementat corect în laborator. Referința completă și la zi este [Lucrarea 3](../Lucrarea-03/Exemple/Examples.Domain/): `ValueObjects/StudentRegistrationNumber.cs`, `States/Exam.cs`, `Operations/ExamValidation.cs`, `Workflows/PublishExamWorkflow.cs`.
 
 ---
 
@@ -2499,7 +1337,7 @@ public void Execute_ValidData_ReturnsSuccessEvent()
 // 1. Valid codes: "PSSC", "BD", "POO2"
 // 2. Invalid codes: "pssc" (lowercase), "ABC123" (too long), "A" (too short)
 // 3. Edge cases: null, empty, whitespace
-// Use FluentAssertions for readable assertions
+// Use plain Assert (xunit.v3, no FluentAssertions — see copilot-instructions.md)
 ```
 
 AI-ul va genera teste comprehensive, dar verifică că acoperă toate edge cases-urile relevante.
@@ -2576,37 +1414,7 @@ Operațiile existente nu se modifică (Open-Closed Principle).
 
 ## Final Checklist pentru Studenți
 
-Înainte de a considera laboratorul complet, verificați:
-
-### Partea Tehnică
-- [ ] Codul compilează fără erori și warnings
-- [ ] Toate value objects au validare în constructor
-- [ ] Toate value objects au metodă TryParse
-- [ ] Toate entity states sunt immutable (record types)
-- [ ] Toate operations extind clasa de bază corectă
-- [ ] Workflow-ul compune operațiile correct
-- [ ] Evenimente definite pentru success și failure
-- [ ] Aplicația console rulează și afișează rezultate
-
-### Partea de Design
-- [ ] Event storming diagram completat
-- [ ] Bounded contexts identificate clar
-- [ ] Comenzi și evenimente denumite corect (imperativ vs trecut)
-- [ ] Agregările au responsabilități clare
-- [ ] Tranziții între stări sunt logice
-- [ ] Nu există logică de business în workflow sau console
-
-### Documentație
-- [ ] Fișier README cu explicații
-- [ ] Comentarii în cod pentru părți complexe
-- [ ] Exemple de folosire a prompturilor AI
-- [ ] Lecții învățate documentate
-
-### AI Usage
-- [ ] Prompturi salvate și documentate
-- [ ] Codul generat de AI a fost validat
-- [ ] Modificări la codul generat documentate
-- [ ] Limitări ale AI identificate
+Vedeți [ANEXA C: Checklist Final](#anexa-c-checklist-final), la începutul acestei anexe — aceeași listă, actualizată pentru stilul curent (fără `TryParse`, fără stare `Invalid`, operații ca membri de extensie).
 
 **Succes la implementare! 🚀**
 
@@ -2933,7 +1741,7 @@ Oferă și un diagram Mermaid pentru vizualizare.
 //
 // Use:
 // - [Theory] with [InlineData] for parameterized tests
-// - FluentAssertions for readable assertions
+// - Plain Assert (xunit.v3, no FluentAssertions)
 // - Arrange-Act-Assert pattern clearly separated
 // - Descriptive test names: MethodName_Scenario_ExpectedResult
 ```
@@ -3042,7 +1850,7 @@ Compilation errors:
 [PASTE ERRORS]
 
 Context:
-- I'm using .NET 8 / C# 12
+- I'm using .NET 10 / C# 14
 - Available types in project: [LIST KEY TYPES]
 - This should follow pattern from [REFERENCE CLASS]
 
@@ -4232,22 +3040,23 @@ LabDDD/
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12.0</LangVersion>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>
 ```
+(`net10.0` implică deja C# 14 — nu mai e nevoie de `<LangVersion>` explicit.)
 
 **LabDDD.ConsoleApp.csproj:**
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12.0</LangVersion>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -4260,17 +3069,15 @@ LabDDD/
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12.0</LangVersion>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.6.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -4278,6 +3085,7 @@ LabDDD/
   </ItemGroup>
 </Project>
 ```
+(xunit.v3 rulează pe Microsoft.Testing.Platform — nu mai sunt necesare `Microsoft.NET.Test.Sdk` sau `xunit.runner.visualstudio`; proiectul de teste e un executabil, de aici `<OutputType>Exe</OutputType>`. Fără `FluentAssertions` — folosiți `Assert` simplu, vezi `copilot-instructions.md`.)
 
 ### R.3: .editorconfig pentru Coding Standards
 
@@ -4331,66 +3139,7 @@ csharp_style_prefer_record_structs = true:suggestion
 
 ### R.4: copilot-instructions.md
 
-Creați în rădăcina proiectului:
+Nu recreați acest fișier — folosiți direct [`copilot-instructions.md`](copilot-instructions.md) din acest laborator (copiați-l în `.github/copilot-instructions.md` din repository-ul echipei, ca la Sarcina 2.2). Acolo sunt descrise, actualizate pentru stilul funcțional, regulile pentru obiecte-valoare, stări ale entității, operații, workflow-uri, evenimente și erori.
 
-```markdown
-# GitHub Copilot Instructions for DDD Lab Project
-
-## Project Context
-This is a Domain-Driven Design lab project following specific patterns for:
-- Value Objects (immutable, private constructor, TryParse)
-- Entity States (interface + records with internal constructors)
-- Domain Operations (pattern matching, single responsibility)
-- Workflows (composition of operations)
-
-## Coding Standards
-
-### Value Objects
-- Always use `record` type
-- Constructor must be `private`
-- Include static `TryParse` method
-- Properties are `{ get; }` only (immutable)
-- Validation in constructor throws domain-specific exception
-- Override `ToString()` for serialization
-
-### Entity States
-- Interface `I[EntityName]` as base type
-- Each state is a separate record
-- Constructors are `internal`
-- Use `IReadOnlyCollection<T>` for lists
-- Group related states in static class
-
-### Operations
-- Inherit from `DomainOperation<TEntity, TState, TResult>`
-- Use pattern matching in `Transform` method
-- Override only relevant `OnXxx` methods
-- Default implementation returns same entity
-- Inject dependencies via constructor as `Func<>`
-
-### Workflows
-- Public `Execute` method
-- Takes command and dependencies as parameters
-- Chain operations: `result = operation.Transform(result)`
-- No business logic, only composition
-- Convert final state to event
-
-### Naming Conventions
-- Commands: `VerbNounCommand`
-- Events: `NounVerbedEvent` (past tense)
-- Operations: `VerbEntityOperation`
-- Value Objects: Clear domain terms
-- States: `StateEntity`
-
-## Available Types
-- System standard library only
-- No external dependencies
-- No Entity Framework, no ASP.NET
-
-## Code Quality
-- Enable nullable reference types
-- Treat warnings as errors
-- Use C# 12 features
-- Follow SOLID principles
-- Write self-documenting code
-```
+Singura regulă specifică acestui laborator pe care instrucțiunile generale nu o conțin: la acest stadiu folosiți doar biblioteca standard — fără Entity Framework, fără ASP.NET (persistența și API-ul vin în Lucrările 5-6).
 

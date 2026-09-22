@@ -25,16 +25,19 @@
 - `[ValueObject2]`: [Descriere]
 
 ### Entity States
-- `Unvalidated[Entity]`: [When]
-- `Validated[Entity]`: [When]
+- `[Entity].Unvalidated`: [When]
+- `[Entity].Validated`: [When]
 - ...
 
-### Operations
-1. `Validate[Entity]Operation`: [Ce face]
-2. `[Business]Operation`: [Ce face]
+### Erori
+- `[Action][Entity]Error`: [cazurile din ierarhia închisă și ce reprezintă fiecare]
+
+### Operații (funcții)
+1. `[Entity]Validation.Validate`: [Ce face]
+2. `[Entity][Verb].[Verb]`: [Ce face]
 
 ### Workflow
-`[Action][Entity]Workflow`: [Descriere pipeline]
+`[Action][Entity]Workflow.Publish`: [Descriere pipeline]
 
 ## Rulare
 
