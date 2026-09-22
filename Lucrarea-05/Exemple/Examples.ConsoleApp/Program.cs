@@ -11,6 +11,11 @@ using Microsoft.Extensions.Hosting;
 // Namespace-ul proiectului este Examples.ConsoleApp (nu Examples.Console): în interiorul unui namespace
 // numit Console, identificatorul Console ar fi ambiguu cu System.Console.
 
+// Consola Windows nu pornește implicit pe UTF-8: fără asta, diacriticele (ă, â, î, ș, ț) s-ar afișa
+// greșit la scriere și s-ar citi greșit la introducerea lor de la tastatură (vezi și GradesInput.cs).
+System.Console.OutputEncoding = System.Text.Encoding.UTF8;
+System.Console.InputEncoding = System.Text.Encoding.UTF8;
+
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddGradesData(

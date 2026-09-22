@@ -1,9 +1,15 @@
+using System.Text;
 using Examples.Domain.Commands;
 using Examples.Domain.Errors;
 using Examples.Domain.States;
 using Examples.Domain.ValueObjects;
 using Examples.Domain.Workflows;
 using Examples.Functional;
+
+// Consola Windows nu pornește implicit pe UTF-8: fără asta, diacriticele (ă, â, î, ș, ț) s-ar afișa
+// greșit la scriere și s-ar citi greșit la introducerea lor de la tastatură.
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 // La acest stadiu nu există încă o bază de date (vine în Lucrarea 5): studenții "existenți" sunt o listă
 // fixă în memorie, iar workflow-ul rulează sincron, folosind doar nucleul pur PublishExamWorkflow.Publish

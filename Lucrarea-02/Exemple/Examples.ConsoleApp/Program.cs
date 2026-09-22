@@ -1,8 +1,14 @@
 using System.Diagnostics;
+using System.Text;
 using Examples.Domain.Errors;
 using Examples.Domain.States;
 using Examples.Domain.ValueObjects;
 using Examples.Functional;
+
+// Consola Windows nu pornește implicit pe UTF-8: fără asta, diacriticele (ă, â, î, ș, ț) s-ar afișa
+// greșit la scriere și s-ar citi greșit la introducerea lor de la tastatură.
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 // Modulul de validare (Examples.Domain.Operations) vine abia în Lucrarea 3. Aici exersăm doar sistemul de
 // tipuri: fiecare notă brută este convertită în obiecte-valoare prin Grade.Parse/StudentRegistrationNumber.Create
