@@ -40,6 +40,11 @@ public sealed class PublishExamWorkflowTests
         Assert.Empty(grades.Saved);
         PublishExamError.Validation validation = Assert.IsType<PublishExamError.Validation>(error);
         Assert.Single(validation.Errors);
+
+        // Regresie: fără "sealed" pe PublishExamError.ToString(), înregistrarea derivată Validation își
+        // sintetizează propriul ToString() (formatul implicit "Validation { Errors = ... }"), ascunzând
+        // override-ul din tipul de bază — vezi comentariul din PublishExamError.cs.
+        Assert.Equal("Student not found (LM12345)", error.ToString());
     }
 
     [Fact]

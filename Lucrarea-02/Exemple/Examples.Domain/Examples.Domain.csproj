@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Sistemul de tipuri pentru domeniul de publicare a notelor unui examen (obiecte-valoare, stări).</Description>
+    <Description>Modelul de domeniu pentru publicarea notelor unui examen, scris în stil DDD funcțional (Scott Wlaschin, Domain Modeling Made Functional).</Description>
   </PropertyGroup>
 
   <ItemGroup>

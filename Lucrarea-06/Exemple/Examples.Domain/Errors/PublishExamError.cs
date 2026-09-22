@@ -19,5 +19,7 @@ public abstract record PublishExamError
         _ => throw new UnreachableException(),
     };
 
-    public override string ToString() => string.Join(Environment.NewLine, ToMessages());
+    // "sealed": fără el, fiecare înregistrare derivată (aici Validation) își sintetizează propriul ToString()
+    // care ascunde acest override — vezi https://learn.microsoft.com/dotnet/csharp/fundamentals/tutorials/records#formatting
+    public sealed override string ToString() => string.Join(Environment.NewLine, ToMessages());
 }
