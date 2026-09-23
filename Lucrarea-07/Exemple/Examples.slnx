@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Domain/">
+    <Project Path="Examples.Functional/Examples.Functional.csproj" />
+    <Project Path="Examples.Domain/Examples.Domain.csproj" />
+    <Project Path="Examples.Domain.Tests/Examples.Domain.Tests.csproj" />
+    <Project Path="Examples.Contracts/Examples.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="Examples.Data/Examples.Data.csproj" />
+  </Folder>
+  <Folder Name="/Hosts/">
+    <Project Path="Examples.Api/Examples.Api.csproj" />
+    <Project Path="Examples.ReportGenerator/Examples.ReportGenerator.csproj" />
+  </Folder>
+</Solution>

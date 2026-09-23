@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Contracte partajate (tipuri simple, serializabile) între API-uri — nu conțin logică de domeniu.</Description>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Contracte partajate (tipuri simple, serializabile) între API-uri și servicii — nu conțin logică de domeniu.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examples.Events\Examples.Events.csproj" />
+  </ItemGroup>
+
+</Project>

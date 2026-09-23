@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Abstracții de mesagerie independente de transport (fără nicio dependență de Azure Service Bus sau CloudEvents).</Description>
+  </PropertyGroup>
+
+</Project>

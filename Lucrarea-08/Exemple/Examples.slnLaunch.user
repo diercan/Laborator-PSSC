@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Api + EventProcessor",
+    "Projects": [
+      {
+        "Path": "Examples.Api\\Examples.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Examples.Accommodation.EventProcessor\\Examples.Accommodation.EventProcessor.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

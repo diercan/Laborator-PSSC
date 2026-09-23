@@ -1,0 +1,62 @@
+name: pssc-examples
+
+# Mediu local pentru laboratoarele 5-8: SQL Server (Lucrarea 5+) și emulatorul Azure Service Bus
+# (Lucrarea 8). Opțional — puteți folosi în schimb un SQL Server instalat local și/sau un namespace
+# Azure Service Bus real, ajustând connection string-urile din appsettings/user-secrets.
+#
+# Utilizare:
+#   copy .env.example .env
+#   docker compose up -d
+#   docker compose ps        # sqlserver "healthy", sqlserver-init "exited (0)", servicebus-emulator "running"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    environment:
+      ACCEPT_EULA: "${ACCEPT_EULA:?Setați ACCEPT_EULA=Y în .env (copiați .env.example)}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Setați MSSQL_SA_PASSWORD în .env (copiați .env.example)}"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433" # schimbați portul gazdă dacă aveți deja un SQL Server local pe 1433
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -b -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  sqlserver-init:
+    # Rulează SQL/create-db.sql (Lucrarea 8, identic cu 5-7). Scriptul este idempotent — poate fi rerulat.
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    volumes:
+      - ./Lucrarea-08/SQL/create-db.sql:/scripts/create-db.sql:ro
+    entrypoint: ["/bin/bash", "-c", "/opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -b -i /scripts/create-db.sql"]
+    restart: "no"
+
+  servicebus-emulator:
+    # Necesar doar pentru Lucrarea 8. Limitări: doar AMQP prin TCP, fără persistență între restart-uri,
+    # TTL maxim 1 oră, necesită WSL 2 pe Windows. Detalii: https://learn.microsoft.com/azure/service-bus-messaging/overview-emulator
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    pull_policy: always
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./infra/servicebus/Config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro
+    ports:
+      - "5672:5672" # AMQP
+      - "5300:5300" # health / management
+    environment:
+      SQL_SERVER: sqlserver
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      ACCEPT_EULA: "${ACCEPT_EULA}"
+
+volumes:
+  sqlserver-data:

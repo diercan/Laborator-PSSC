@@ -2,11 +2,14 @@
 
 **Context**: coșul de cumpărături pentru un magazin virtual. 
 
-**Obiective**: înțelegerea conceptelor de tip valoare și tip entitate entity, construirea unui sistem de tipuri [3] specific pentru un anumit domeniu 
+**Obiective**: înțelegerea conceptelor de tip valoare și tip entitate, construirea unui sistem de tipuri [1] specific pentru un anumit domeniu 
 
 ## Sarcina 1
 
-Analizați și rulați soluția din directorul exemple. Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
+Analizați și rulați soluția din directorul [Exemple](Exemple/) (`Exemple/Examples.slnx`). Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă. Observați în special:
+
+* obiectele-valoare (`Grade`, `StudentRegistrationNumber`) se construiesc printr-un *smart constructor* static (`Create`/`Parse`) care întoarce `Result` în loc să arunce excepții — vedeți `Examples.Domain/ValueObjects/`;
+* stările examenului (`Exam.Unvalidated`, `Exam.Validated`, ...) sunt o ierarhie închisă de înregistrări (`abstract record` cu constructor privat) — vedeți `Examples.Domain/States/Exam.cs`.
 
 ## Sarcina 2
 
@@ -18,7 +21,22 @@ Sistemul de tipuri trebuie să folosească:
 
 Aplicația consolă trebuie să permită crearea unui coș gol, adăugarea de produse în coș și trecerea unui coș dintr-o stare fără însă a aplica validările.
 
-Pentru a interpreta stările coșului de cumpărături se va folosi construcția `switch-expression` (vezi Lucrarea 1).
+Pentru a interpreta stările coșului de cumpărături se va folosi construcția `switch-expression` (vezi [Lucrarea 1](../Lucrarea-01/README.md)).
+
+## Concepte noi în exemplu
+
+* `Result<TSuccess, TFailure>` și `Option<T>` (proiectul `Examples.Functional`) — tipuri-sumă închise pentru "poate reușeurile" și "poate lipseurile", folosite în locul excepțiilor și al `null`-ului.
+* Stările examenului formează o ierarhie închisă (`Examples.Domain/States/Exam.cs`): un `abstract record` cu constructor privat și înregistrări imbricate `sealed`, potrivită exhaustiv cu `switch`.
+
+## Pentru proiect
+
+Începeți descoperirea domeniului echipei cu Event Storming — vezi [Lucrarea 4, Partea 1](../Lucrarea-04/README.md). Rezultatul acelui exercițiu este livrabilul din săptămâna a 7-a ([Proiect](../Proiect/README.md)).
+
+## Rulare
+
+```
+dotnet run --project Exemple/Examples.ConsoleApp
+```
 
 ## GitHub Copilot
 
@@ -37,6 +55,12 @@ An entity type in Domain-Driven Design (DDD) represents a concept that has a uni
 For example, let's consider a car entity type in a car rental system. Each car has a unique identifier and is defined by its attributes such as the make, model, year, and current status. The state of a car entity can change as it is rented, returned, or undergoes maintenance.
 
 Entity types play a crucial role in DDD as they enable the modeling of complex business processes and interactions between different objects in the domain.
+
+În exemplele acestui laborator, entitatea (examenul) este reprezentată prin stări imutabile: o tranziție de stare creează o instanță nouă, nu modifică una existentă.
+
+## Decizii de arhitectură
+
+Alegerile de proiectare ale acestui laborator – sistemul de tipuri închis, `Result` în loc de excepții, absența stării `Invalid` – împreună cu alternativele respinse și consecințele lor sunt documentate în [ADR-0001](docs/adr/0001-sistem-de-tipuri-inchis-cu-erori-ca-valori.md), primul din lanțul de ADR-uri al laboratoarelor cu cod.
 
 ## Referințe
 

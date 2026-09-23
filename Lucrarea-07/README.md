@@ -1,18 +1,31 @@
-# Lucrarea 7: Comunicare sincrona
+# Lucrarea 7: Comunicare sincronă
 
 **Context**: Coșul de cumpărături pentru un magazin virtual. 
 
-**Obiective**: implementarea si apelarea unui API
+**Obiective**: implementarea și apelarea unui API
 
 **Sarcina 1**
 
-Analizați și rulați soluția din directorul exemple. Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
+Analizați și rulați soluția din directorul [Exemple](Exemple/) (`Exemple/Examples.slnx`). Identificați elementele noi vis-a-vis de modul în care este scris și organizat codul sursă.
 
 **Sarcina 2**
 
-Realizați un nou API (care reprezintă contextul de livrări) pe care să îl apelați la finalul procesării comenzii. Configurați politica de reîncercări astfel încât apelul să reîncerce orice eroare tranzitorie de 3 ori la interval de timp exponențiale.
+Realizați un nou API (care reprezintă contextul de livrări) pe care să îl apelați la finalul procesării comenzii. Configurați politica de reîncercări, folosind `Microsoft.Extensions.Http.Resilience`, astfel încât apelul să reîncerce orice eroare tranzitorie de 3 ori la interval de timp exponențiale.
 
-# GitHub Copilot
+## Contracte partajate
+
+DTO-urile schimbate între API-uri stau într-un proiect separat, `Examples.Contracts`. Nu referențiați un proiect web din altul ca să-i reutilizați un model: controller-ele/endpoint-urile lui ar fi încărcate ca *application part* și în API-ul apelant — motivul pentru care o versiune anterioară a acestui exemplu avea nevoie de un filtru care să ascundă din documentația OpenAPI endpoint-urile "împrumutate".
+
+## Rulare
+
+Porniți mai întâi `Examples.ReportGenerator` (`https://localhost:7286`), apoi `Examples.Api`. Adresa e citită din configurație (`ReportApi:BaseAddress` în `appsettings.json`), nu e hard-codată.
+
+```
+dotnet run --project Exemple/Examples.ReportGenerator
+dotnet run --project Exemple/Examples.Api
+```
+
+## GitHub Copilot
 
 ## HttpClient tipizat
 
@@ -42,117 +55,62 @@ Pentru a configura un HttpClient tipizat, urmați pașii de mai jos:
     }
     ```
 
-2. **Configurați HttpClient tipizat în `Startup.cs`**:
+2. **Configurați HttpClient tipizat în `Program.cs`**:
     ```csharp
-    public void ConfigureServices(IServiceCollection services)
+    builder.Services.AddHttpClient<MyApiClient>(client =>
     {
-        services.AddHttpClient<MyApiClient>(client =>
-        {
-            client.BaseAddress = new Uri("https://api.example.com/");
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-        });
-    }
+        client.BaseAddress = new Uri("https://api.example.com/");
+        client.DefaultRequestHeaders.Add("Accept", "application/json");
+    });
     ```
 
-3. **Utilizați HttpClient tipizat în controller sau serviciu**:
+3. **Injectați clientul tipizat într-un endpoint minimal**:
     ```csharp
-    public class MyController : ControllerBase
-    {
-        private readonly MyApiClient _myApiClient;
-
-        public MyController(MyApiClient myApiClient)
-        {
-            _myApiClient = myApiClient;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetData()
-        {
-            var data = await _myApiClient.GetDataAsync();
-            return Ok(data);
-        }
-    }
+    app.MapGet("/data", async (MyApiClient client) => await client.GetDataAsync());
     ```
 
-## Biblioteca Polly
+## Microsoft.Extensions.Http.Resilience
 
-    Polly este o bibliotecă .NET care oferă mecanisme de gestionare a rezilienței și a tranzienței, cum ar fi retry, circuit breaker, timeout și bulkhead isolation. În contextul configurării unei politici de retry pentru un HttpClient, Polly poate fi utilizată pentru a reîncerca apelurile HTTP care eșuează din cauza erorilor tranzitorii.
+`Microsoft.Extensions.Http.Resilience` este pachetul actual pentru reziliența apelurilor HTTP în .NET (construit peste Polly v8); înlocuiește vechiul `Microsoft.Extensions.Http.Polly` + `AddPolicyHandler`. Oferă `AddResilienceHandler` pentru o politică personalizată sau `AddStandardResilienceHandler` pentru un set implicit (retry + circuit breaker + timeout).
 
-### Configurarea unei politici de retry cu Polly
+### Configurarea unei politici de reîncercare
 
-Pentru a configura o politică de retry folosind Polly, urmați pașii de mai jos:
-
-1. **Adăugați pachetul Polly în proiectul dvs.**:
+1. **Adăugați pachetul în proiectul dvs.**:
     ```bash
-    dotnet add package Polly
+    dotnet add package Microsoft.Extensions.Http.Resilience
     ```
 
-2. **Configurați politica de retry în `Startup.cs`**:
+2. **Configurați politica în `Program.cs`**:
     ```csharp
-    public void ConfigureServices(IServiceCollection services)
+    builder.Services.AddHttpClient<MyApiClient>(client =>
     {
-        services.AddHttpClient<MyApiClient>(client =>
+        client.BaseAddress = new Uri("https://api.example.com/");
+    })
+    .AddResilienceHandler("my-api", pipeline =>
+    {
+        pipeline.AddRetry(new HttpRetryStrategyOptions
         {
-            client.BaseAddress = new Uri("https://api.example.com/");
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-        })
-        .AddPolicyHandler(Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .OrResult(msg => msg.StatusCode == HttpStatusCode.InternalServerError)
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-    }
+            MaxRetryAttempts = 3,
+            BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true,
+        });
+    });
     ```
 
-3. **Utilizați HttpClient tipizat în controller sau serviciu**:
-    ```csharp
-    public class MyController : ControllerBase
-    {
-        private readonly MyApiClient _myApiClient;
+   Politica de mai sus reîncearcă de 3 ori erorile tranzitorii (5xx, timeout, excepții de rețea), cu întârziere exponențială și *jitter* — exact configurația din exemplul acestei lucrări (`Examples.Api/Clients/ServiceCollectionExtensions.cs`), unde numărul de reîncercări și întârzierea de bază sunt legate din configurație (`ReportApi:Retry`) în loc să fie valori fixe în cod.
 
-        public MyController(MyApiClient myApiClient)
-        {
-            _myApiClient = myApiClient;
-        }
+3. **Injectați clientul tipizat** ca mai sus.
 
-        [HttpGet]
-        public async Task<IActionResult> GetData()
-        {
-            var data = await _myApiClient.GetDataAsync();
-            return Ok(data);
-        }
-    }
-    ```
+Intervalul de timp dintre reîncercări crește exponențial (600 ms, 1,2 s, 2,4 s, cu jitter — la fel ca în exemplu), nu doar constant.
 
-În exemplul de mai sus, politica de retry este configurată pentru a reîncerca de 3 ori apelurile care eșuează din cauza unei `HttpRequestException` sau a unui răspuns cu codul de stare `InternalServerError`. Intervalul de timp dintre reîncercări crește exponențial (2, 4, 8 secunde).
+## Decizii de arhitectură
 
-### Exemple de utilizare a Polly
+Alegerile de proiectare ale acestui laborator – contractele partajate într-o bibliotecă separată, clientul HTTP tipizat cu reziliență, propagarea eșecului dependenței – sunt documentate în [ADR-0005](docs/adr/0005-contracte-partajate-si-client-http-rezilient.md), care continuă [ADR-0004](../Lucrarea-06/docs/adr/0004-api-minimal-cu-rezultate-tipizate.md) din Lucrarea 6.
 
-#### Politica de retry simplă
-```csharp
-var retryPolicy = Policy
-    .Handle<HttpRequestException>()
-    .RetryAsync(3);
+## Referințe
 
-await retryPolicy.ExecuteAsync(() => _httpClient.GetAsync("endpoint"));
-```
+[1] Scott Wlaschin, [Domain Modeling Made Functional](https://www.amazon.com/Domain-Modeling-Made-Functional-Domain-Driven-ebook/dp/B07B44BPFB/), Pragmatic Bookshelf, 2018 — cap. 3 (comunicarea între contexte delimitate), cap. 11 (DTO-uri la graniță)
 
-#### Politica de retry cu backoff exponențial
-```csharp
-var retryPolicy = Policy
-    .Handle<HttpRequestException>()
-    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+[2] Microsoft Documentation, [Clienți HttpClient tipizați](https://learn.microsoft.com/dotnet/core/extensions/httpclient-factory#typed-clients)
 
-await retryPolicy.ExecuteAsync(() => _httpClient.GetAsync("endpoint"));
-```
-
-#### Politica de retry cu jitter (interval de timp aleatoriu)
-```csharp
-var jitterer = new Random();
-var retryPolicy = Policy
-    .Handle<HttpRequestException>()
-    .WaitAndRetryAsync(3, retryAttempt => 
-        TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) 
-        + TimeSpan.FromMilliseconds(jitterer.Next(0, 1000)));
-
-await retryPolicy.ExecuteAsync(() => _httpClient.GetAsync("endpoint"));
-```
+[3] Microsoft Documentation, [Microsoft.Extensions.Http.Resilience](https://learn.microsoft.com/dotnet/core/resilience/http-resilience)

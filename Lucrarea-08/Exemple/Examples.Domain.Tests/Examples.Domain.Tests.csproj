@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <ProjectReference Include="..\Examples.Domain\Examples.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

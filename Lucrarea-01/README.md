@@ -1,9 +1,14 @@
-# Lucrarea 1: Familiarizarea cu mediul de lucru Rider și dezvoltarea aplicațiilor consolă in C#.
+# Lucrarea 1: Familiarizarea cu mediul de lucru și dezvoltarea aplicațiilor consolă în C#
+
+## Mediul de lucru
+
+Aveți nevoie de .NET 10 SDK și un IDE la alegere: Visual Studio 2026, JetBrains Rider sau VS Code + C# Dev Kit. Verificați instalarea cu `dotnet --version` — ar trebui să afișeze `10.x`.
 
 ## Obiective
 
-* tipuri de date imutabilă folosind construcții `record`
+* tipuri de date imutabile folosind construcții `record`
 * potrivirea tiparului folosind `switch expressions`
+* copierea nedistructivă a înregistrărilor folosind expresii `with`
 
 ## Sarcină
 
@@ -54,7 +59,7 @@ Record types provide a convenient way to work with immutable data in C#, making 
 
 ### C# Switch Expression
 
-The C# switch expression is a powerful feature introduced in C# 8.0 that allows for concise and expressive pattern matching. It provides a compact syntax for performing different actions based on the value of an expression.
+The C# switch expression is a powerful feature, available since C# 8.0 (this lab uses C# 14 / .NET 10), that allows for concise and expressive pattern matching. It provides a compact syntax for performing different actions based on the value of an expression.
 
 One interesting use case of the switch expression is performing pattern matching for types. Here's an example:
 
@@ -105,11 +110,11 @@ In summary, lambda functions in C# provide a concise and flexible way to define 
 
 ## Referințe
 
-[1] https://www.jetbrains.com/rider/
+[1] https://visualstudio.microsoft.com/ · https://www.jetbrains.com/rider/ · https://code.visualstudio.com/docs/csharp/get-started
 
 [2] https://learn.microsoft.com/en-us/training/paths/get-started-c-sharp-part-1/
 
-[3] https://learn.microsoft.com/en-us/visualstudio/get-started/csharp/tutorial-console?view=vs-2022
+[3] https://learn.microsoft.com/en-us/dotnet/core/tutorials/with-visual-studio
 
 [4] https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression
 

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Modelul de domeniu pentru publicarea notelor unui examen, scris în stil DDD funcțional (Scott Wlaschin, Domain Modeling Made Functional).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examples.Functional\Examples.Functional.csproj" />
+  </ItemGroup>
+
+</Project>

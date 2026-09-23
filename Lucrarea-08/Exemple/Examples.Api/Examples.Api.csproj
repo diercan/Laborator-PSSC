@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+    <PackageReference Include="Microsoft.Extensions.Azure" />
+    <!-- Microsoft.Extensions.Options.ConfigurationExtensions/.DataAnnotations vin implicit din Microsoft.NET.Sdk.Web. -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examples.Data\Examples.Data.csproj" />
+    <ProjectReference Include="..\Examples.Contracts\Examples.Contracts.csproj" />
+    <ProjectReference Include="..\Examples.Events.ServiceBus\Examples.Events.ServiceBus.csproj" />
+    <ProjectReference Include="..\Examples.Domain\Examples.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
