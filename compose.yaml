@@ -1,6 +1,6 @@
 name: pssc-examples
 
-# Mediu local pentru laboratoarele 5-8: SQL Server (Lucrarea 5+) și emulatorul Azure Service Bus
+# Mediu local pentru laboratoarele 4-8: SQL Server (Lucrarea 4+) și emulatorul Azure Service Bus
 # (Lucrarea 8). Opțional — puteți folosi în schimb un SQL Server instalat local și/sau un namespace
 # Azure Service Bus real, ajustând connection string-urile din appsettings/user-secrets.
 #

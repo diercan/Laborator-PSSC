@@ -1,0 +1,7 @@
+<Project InitialTargets="VerificaVersiuneaSdk">
+  <!-- Mesaj clar înainte de orice altă eroare atunci când soluția este deschisă cu un SDK prea vechi. -->
+  <Target Name="VerificaVersiuneaSdk"
+          Condition="'$(NETCoreSdkVersion)' != '' and $([MSBuild]::VersionLessThan('$(NETCoreSdkVersion)', '10.0'))">
+    <Error Text="Exemplele PSSC necesită .NET SDK 10.0 sau mai nou (SDK detectat: $(NETCoreSdkVersion)). Instalați SDK-ul de la https://dotnet.microsoft.com/download/dotnet/10.0 și rulați din nou comanda." />
+  </Target>
+</Project>
