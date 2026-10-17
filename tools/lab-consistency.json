@@ -6,10 +6,10 @@
     { "name": "Domain-types", "path": "Exemple/Examples.Domain", "labs": ["02", "03"], "mode": "subset" },
     { "name": "Domain.Tests", "path": "Exemple/Examples.Domain.Tests", "labs": ["03", "05", "06", "07", "08"], "mode": "identical" },
     { "name": "Data", "path": "Exemple/Examples.Data", "labs": ["05", "06", "07", "08"], "mode": "identical" },
-    { "name": "SQL", "path": "SQL/create-db.sql", "labs": ["05", "06", "07", "08"], "mode": "identical" },
-    { "name": "BuildProps", "path": "Exemple/Directory.Build.props", "labs": ["02", "03", "05", "06", "07", "08"], "mode": "identical" },
-    { "name": "BuildTargets", "path": "Exemple/Directory.Build.targets", "labs": ["02", "03", "05", "06", "07", "08"], "mode": "identical" },
-    { "name": "PackageVersions", "path": "Exemple/Directory.Packages.props", "labs": ["02", "03", "05", "06", "07", "08"], "mode": "identical" }
+    { "name": "SQL", "path": "SQL/create-db.sql", "labs": ["04", "05", "06", "07", "08"], "mode": "identical" },
+    { "name": "BuildProps", "path": "Exemple/Directory.Build.props", "labs": ["02", "03", "04", "05", "06", "07", "08"], "mode": "identical" },
+    { "name": "BuildTargets", "path": "Exemple/Directory.Build.targets", "labs": ["02", "03", "04", "05", "06", "07", "08"], "mode": "identical" },
+    { "name": "PackageVersions", "path": "Exemple/Directory.Packages.props", "labs": ["02", "03", "04", "05", "06", "07", "08"], "mode": "identical" }
   ],
   "allow": [
     {

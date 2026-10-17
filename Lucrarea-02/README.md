@@ -30,7 +30,7 @@ Pentru a interpreta stările coșului de cumpărături se va folosi construcția
 
 ## Pentru proiect
 
-Începeți descoperirea domeniului echipei cu Event Storming — vezi [Lucrarea 4, Partea 1](../Lucrarea-04/README.md). Rezultatul acelui exercițiu este livrabilul din săptămâna a 7-a ([Proiect](../Proiect/README.md)).
+Începeți descoperirea domeniului echipei cu Event Storming — vezi [Lucrarea 9](../Lucrarea-09-AI/README.md). Rezultatul acelui exercițiu este livrabilul din săptămâna a 9-a ([Proiect](../Proiect/README.md)).
 
 ## Rulare
 

@@ -6,8 +6,8 @@ Materialele de laborator pentru cursul de Proiectarea Sistemelor Software Comple
 
 * **.NET 10 SDK** — versiunea exactă e fixată în [global.json](global.json); verificați cu `dotnet --version`.
 * Un IDE: **Visual Studio 2026**, **JetBrains Rider 2025.3+** sau **VS Code + C# Dev Kit**.
-* **Docker Desktop** (opțional) — necesar pentru rularea locală a Lucrărilor 5-8 (SQL Server și emulatorul Azure Service Bus); vedeți [compose.yaml](compose.yaml).
-* **GitHub Copilot** sau un asistent AI echivalent (ChatGPT, Claude) — pentru Lucrarea 4.
+* **Docker Desktop** (opțional) — necesar pentru rularea locală a Lucrărilor 4-8 (SQL Server și emulatorul Azure Service Bus); vedeți [compose.yaml](compose.yaml).
+* **GitHub Copilot** sau un asistent AI echivalent (ChatGPT, Claude) — pentru Lucrarea 9.
 
 ### De ce .NET 10?
 
@@ -20,18 +20,19 @@ Exemplele folosesc C# 14 (membri de extensie `extension(...)`, cuvântul cheie `
 | 1 | Mediul de lucru și aplicații consolă | `record`, `switch expressions`, `with` | — |
 | 2 | Sistem de tipuri DDD | obiecte-valoare, stări închise, `Result` | [Lucrarea-02/Exemple/Examples.slnx](Lucrarea-02/Exemple/Examples.slnx) |
 | 3 | Workflow DDD | operații pure, compunere, evenimente și erori, teste | [Lucrarea-03/Exemple/Examples.slnx](Lucrarea-03/Exemple/Examples.slnx) |
-| 4 | Proiectare asistată de AI | Event Storming, GitHub Copilot | referință: [Lucrarea 3](Lucrarea-03/README.md) |
+| 4 | Introducere în EF Core | `DbContext`, `DbSet`, mapare SQL-first | [Lucrarea-04/Exemple/Examples.slnx](Lucrarea-04/Exemple/Examples.slnx) · [SQL/create-db.sql](Lucrarea-04/SQL/create-db.sql) |
 | 5 | Persistență cu EF Core | repository-uri, I/O la marginile workflow-ului | [Lucrarea-05/Exemple/Examples.slnx](Lucrarea-05/Exemple/Examples.slnx) · [SQL/create-db.sql](Lucrarea-05/SQL/create-db.sql) |
 | 6 | API Web | ASP.NET Core, API minimal, OpenAPI | [Lucrarea-06/Exemple/Examples.slnx](Lucrarea-06/Exemple/Examples.slnx) |
 | 7 | Comunicare sincronă | `HttpClient` tipizat, reziliență, contracte partajate | [Lucrarea-07/Exemple/Examples.slnx](Lucrarea-07/Exemple/Examples.slnx) |
 | 8 | Comunicare asincronă | evenimente, Azure Service Bus, worker | [Lucrarea-08/Exemple/Examples.slnx](Lucrarea-08/Exemple/Examples.slnx) |
+| 9 | [Proiectare asistată de AI](Lucrarea-09-AI/README.md) | Event Storming, GitHub Copilot | referință: [Lucrarea 3](Lucrarea-03/README.md) |
 | — | [Proiect](Proiect/README.md) | proiectul de semestru | — |
 
 ## Structura unui laborator
 
-Fiecare `Lucrarea-NN/README.md` descrie tema și cerințele, iar `Lucrarea-NN/Exemple/` conține o soluție exemplu (`Examples.slnx`) care ilustrează conceptele. Proiectele `Examples.Functional`, `Examples.Domain`, `Examples.Domain.Tests`, `Examples.Data` și `SQL/create-db.sql` sunt identice în Lucrările 3-8 (verificat automat de `tools/Check-LabConsistency.ps1`); o corecție într-unul dintre ele se propagă cu `pwsh tools/Sync-Labs.ps1 -Source 08 -Target "07","06","05","03"`. Dacă lucrați dintr-o copie a unui singur laborator, copiați și fișierele din rădăcina depozitului (`global.json`, `.editorconfig`, `NuGet.config`) — fără ele, `dotnet build` nu găsește versiunile pachetelor NuGet.
+Fiecare `Lucrarea-NN/README.md` descrie tema și cerințele, iar `Lucrarea-NN/Exemple/` conține o soluție exemplu (`Examples.slnx`) care ilustrează conceptele. Proiectele `Examples.Functional`, `Examples.Domain`, `Examples.Domain.Tests`, `Examples.Data` și `SQL/create-db.sql` sunt identice în Lucrările 3-8, iar `SQL/create-db.sql` și fișierele `Exemple/Directory.*` sunt partajate și cu Lucrarea 4 (verificat automat de `tools/Check-LabConsistency.ps1`); o corecție într-unul dintre ele se propagă cu `pwsh tools/Sync-Labs.ps1 -Source 08 -Target "07","06","05","04","03"`. Dacă lucrați dintr-o copie a unui singur laborator, copiați și fișierele din rădăcina depozitului (`global.json`, `.editorconfig`, `NuGet.config`) — fără ele, `dotnet build` nu găsește versiunile pachetelor NuGet.
 
-Fiecare laborator cu cod are în `Lucrarea-NN/docs/adr/` un *Architecture Decision Record* (ADR) cu decizia pe care o adaugă față de laboratorul anterior, alternativele respinse și consecințele lor. Lanțul se citește ca istoricul arhitecturii exemplului: [ADR-0001](Lucrarea-02/docs/adr/0001-sistem-de-tipuri-inchis-cu-erori-ca-valori.md) sistemul de tipuri → [ADR-0002](Lucrarea-03/docs/adr/0002-operatii-pure-compuse-in-workflow.md) operații și workflow → [ADR-0003](Lucrarea-05/docs/adr/0003-persistenta-sql-first-la-marginile-workflow-ului.md) persistență → [ADR-0004](Lucrarea-06/docs/adr/0004-api-minimal-cu-rezultate-tipizate.md) API Web → [ADR-0005](Lucrarea-07/docs/adr/0005-contracte-partajate-si-client-http-rezilient.md) comunicare sincronă / [ADR-0006](Lucrarea-08/docs/adr/0006-evenimente-de-integrare-prin-service-bus-si-cloudevents.md) comunicare asincronă.
+Fiecare laborator cu cod are în `Lucrarea-NN/docs/adr/` un *Architecture Decision Record* (ADR) cu decizia pe care o adaugă față de laboratorul anterior, alternativele respinse și consecințele lor. Excepție face Lucrarea 4, o introducere în EF Core fără model de domeniu; deciziile de persistență sunt documentate în ADR-0003 (Lucrarea 5). Lanțul se citește ca istoricul arhitecturii exemplului: [ADR-0001](Lucrarea-02/docs/adr/0001-sistem-de-tipuri-inchis-cu-erori-ca-valori.md) sistemul de tipuri → [ADR-0002](Lucrarea-03/docs/adr/0002-operatii-pure-compuse-in-workflow.md) operații și workflow → [ADR-0003](Lucrarea-05/docs/adr/0003-persistenta-sql-first-la-marginile-workflow-ului.md) persistență → [ADR-0004](Lucrarea-06/docs/adr/0004-api-minimal-cu-rezultate-tipizate.md) API Web → [ADR-0005](Lucrarea-07/docs/adr/0005-contracte-partajate-si-client-http-rezilient.md) comunicare sincronă / [ADR-0006](Lucrarea-08/docs/adr/0006-evenimente-de-integrare-prin-service-bus-si-cloudevents.md) comunicare asincronă.
 
 ## Referințe
 

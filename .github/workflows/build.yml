@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lab: ["02", "03", "05", "06", "07", "08"]
+        lab: ["02", "03", "04", "05", "06", "07", "08"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Build (avertismentele sunt erori, vezi Directory.Build.props)
         run: dotnet build "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" -c Release --no-restore
       - name: Test
-        if: matrix.lab != '02'
+        if: matrix.lab != '02' && matrix.lab != '04'
         run: dotnet test "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" -c Release --no-build
       - name: Verificare formatare (dotnet format)
         run: dotnet format "Lucrarea-${{ matrix.lab }}/Exemple/Examples.slnx" --verify-no-changes --no-restore

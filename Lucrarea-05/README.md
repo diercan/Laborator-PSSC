@@ -10,16 +10,10 @@ Creați baza de date cu [SQL/create-db.sql](SQL/create-db.sql), fie pe un SQL Se
 
 **Sarcina 2**
 
-În contextul workflow-ului pentru plasarea unei comenzi realizați următoarele:
-* creați o nouă bază de date SQL care va conține următoarele tabele: 
-    - Products (Id, Code, Name, Price, QuantityType), 
-    - Customers(Id, Code, Name), 
-    - Order(Id, Date, DeliveryAddress, CustomerId), 
-    - OrderItem(Id, OrderId, ProductId, Quantity)
-* implementați un `DbContext` EF Core cu câte un `DbSet` pentru fiecare tabelă și configurați maparea în `OnModelCreating`
+Folosiți baza de date (Products, Customers, Order, OrderItem) și contextul EF Core create în [Lucrarea 4](../Lucrarea-04/README.md). În contextul workflow-ului pentru plasarea unei comenzi realizați următoarele:
 * înainte de a executa workflow-ul încărcați starea din baza de date
 * implementați funcțiile de verificare a existenței produsului și stocului astfel încât să folosească informații din baza de date
-* după executare workflow-ului salvați rezultatul în baza de date
+* după executarea workflow-ului salvați rezultatul în baza de date
 
 **Decizii de arhitectură**
 
